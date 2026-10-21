@@ -1,0 +1,87 @@
+# Single source of truth for image alt text and captions (keys = paths under assets/).
+# decorative: true -> rendered with alt="" (image adds nothing a screen reader needs).
+images/profile/victor-molina-portrait.jpg:
+  alt:
+    en: "Victor Molina smiling in front of a Powell–Mason cable car in San Francisco"
+    es: "Victor Molina sonriendo frente a un tranvía de cable Powell–Mason en San Francisco"
+images/profile/victor-molina-portrait-alt.jpg:
+  alt:
+    en: "Victor Molina in a plaid shirt, seated in a warmly lit restaurant"
+    es: "Victor Molina con camisa a cuadros, sentado en un restaurante con luz cálida"
+images/backgrounds/hero-golden-gate-sunrise.jpg:
+  decorative: true
+  alt:
+    en: "Sunrise over San Francisco Bay with the Golden Gate Bridge in the distance"
+    es: "Amanecer sobre la bahía de San Francisco con el Golden Gate al fondo"
+images/backgrounds/bay-morning-golden-gate.jpg:
+  decorative: true
+  alt:
+    en: "Morning waves on the bay shoreline, Golden Gate Bridge on the horizon"
+    es: "Olas de la mañana en la orilla de la bahía, con el Golden Gate en el horizonte"
+images/backgrounds/bay-pink-sunrise.jpg:
+  decorative: true
+  alt:
+    en: "Pink clouds at dawn over the bay and Fort Mason"
+    es: "Nubes rosadas al amanecer sobre la bahía y Fort Mason"
+images/about/victor-golden-gate-shoreline.jpg:
+  alt:
+    en: "Victor standing on the bay shoreline at sunrise, with the Golden Gate Bridge behind him"
+    es: "Victor de pie en la orilla de la bahía al amanecer, con el Golden Gate detrás"
+images/gallery/sf-palace-of-fine-arts.jpg:
+  set: "sf-2026"
+  weight: 10
+  alt:
+    en: "The Palace of Fine Arts rotunda reflected in its lagoon under a clear blue sky"
+    es: "La rotonda del Palace of Fine Arts de San Francisco reflejada en su laguna bajo un cielo azul"
+  caption:
+    en: "Palace of Fine Arts"
+    es: "Palace of Fine Arts"
+images/gallery/sf-marina-sunrise.jpg:
+  set: "sf-2026"
+  weight: 20
+  alt:
+    en: "Sailboats in a calm marina at sunrise, the sky glowing orange"
+    es: "Veleros en una marina tranquila al amanecer, con el cielo anaranjado"
+  caption:
+    en: "Marina at first light"
+    es: "La marina al amanecer"
+images/gallery/sf-cuauhtemoc-tall-ship.jpg:
+  set: "sf-2026"
+  weight: 30
+  alt:
+    en: "The Mexican Navy tall ship Cuauhtémoc in port, dressed with signal flags and a large Mexican flag"
+    es: "El buque escuela Cuauhtémoc de la Armada de México en el puerto, con banderas de señales y una gran bandera de México"
+  caption:
+    en: "A bit of home: the tall ship Cuauhtémoc"
+    es: "Un pedacito de casa: el buque escuela Cuauhtémoc"
+images/gallery/sf-cable-car-powell-mason.jpg:
+  set: "sf-2026"
+  weight: 40
+  alt:
+    en: "A red Powell–Mason cable car stopped on a tree-lined street"
+    es: "Un tranvía de cable rojo de la línea Powell–Mason detenido en una calle arbolada"
+  caption:
+    en: "Powell–Mason line"
+    es: "Línea Powell–Mason"
+images/gallery/sf-bay-bridge-morning.jpg:
+  set: "sf-2026"
+  weight: 50
+  alt:
+    en: "The Bay Bridge stretching across the water on a bright, hazy morning"
+    es: "El Bay Bridge cruzando el agua en una mañana brillante y con bruma"
+  caption:
+    en: "Bay Bridge, mid-morning"
+    es: "El Bay Bridge a media mañana"
+images/gallery/sf-transamerica-pyramid.jpg:
+  set: "sf-2026"
+  weight: 60
+  alt:
+    en: "The Transamerica Pyramid rising above downtown buildings on an overcast day"
+    es: "La Pirámide Transamerica sobre los edificios del centro en un día nublado"
+  caption:
+    en: "Transamerica Pyramid"
+    es: "Pirámide Transamerica"
+images/qr/linkedin-qr.svg:
+  alt:
+    en: "QR code that opens linkedin.com/in/victormolinaalba"
+    es: "Código QR que abre linkedin.com/in/victormolinaalba"

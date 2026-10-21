@@ -1,0 +1,220 @@
+# =====================================================================
+# vic-mol.github.io — Hugo site configuration (single source of truth)
+# Custom domain later: change ONLY `baseURL` below (and Settings → Pages).
+# =====================================================================
+baseURL = "https://vic-mol.github.io/"
+title = "Victor Molina"
+theme = "careercanvas"
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = false
+enableRobotsTXT = true
+enableGitInfo = true
+timeZone = "America/Mexico_City"
+
+[pagination]
+  pagerSize = 10
+
+[taxonomies]
+  tag = "tags"            # tags only; no categories
+
+[build]
+  [build.buildStats]
+    enable = true         # hugo_stats.json for Tailwind content scanning
+
+[caches]
+  [caches.images]
+    dir = ":cacheDir/images"   # persisted by the CI cache step
+
+[imaging]
+  resampleFilter = "Lanczos"
+  anchor = "Smart"
+  [imaging.jpeg]
+    quality = 80
+  [imaging.webp]
+    quality = 78
+  [imaging.exif]
+    disableDate = true
+    disableLatLong = true      # never read GPS from images
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = true              # theme partials markdownify HTML in front matter
+  [markup.highlight]
+    noClasses = false          # CSS classes; styles generated into assets/css/syntax.css
+    style = "github"
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+
+[related]
+  includeNewer = true
+  threshold = 60
+  toLower = true
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "date"
+    weight = 10
+
+[outputs]
+  home = ["html", "rss"]
+  section = ["html", "rss"]
+  taxonomy = ["html"]
+  term = ["html", "rss"]
+
+[services.rss]
+  limit = 20
+
+[security]
+  [security.funcs]
+    getenv = ['^HUGO_', '^CI$']
+
+[sitemap]
+  changeFreq = "monthly"
+  priority = 0.5
+
+# ---------------------------------------------------------------------
+# Languages
+# ---------------------------------------------------------------------
+[languages]
+  [languages.en]
+    label = "English"
+    locale = "en-US"
+    weight = 1
+    contentDir = "content/en"
+    title = "Victor Molina"
+    [languages.en.params]
+      tagline = "Security AI Engineer. Building AI that security teams can trust."
+      description = "Victor Molina — Security AI Engineer in Mexico City. Production LLM systems, threat-intelligence pipelines and AI governance for security teams."
+      hero_description = "I design and run production AI systems for the Global Information Security team at Levi Strauss & Co.: threat-intelligence pipelines, multi-agent analysis on Azure, and the guardrails that make AI in security measurable and auditable."
+      hero_location = "Mexico City, Mexico"
+      og_locale = "en_US"
+      resume_url = ""          # empty = hide every "View CV" button
+      collab_tags = [
+        "AI security & LLM guardrails",
+        "Threat-intelligence engineering",
+        "Multi-agent systems on Azure",
+        "Data pipelines (Airflow, PostgreSQL)",
+        "Full stack (Python, React)",
+      ]
+    [[languages.en.menus.main]]
+      name = "About"
+      url = "#about"
+      weight = 10
+    [[languages.en.menus.main]]
+      name = "Skills"
+      url = "#skills"
+      weight = 20
+    [[languages.en.menus.main]]
+      name = "Experience"
+      url = "#experience"
+      weight = 30
+    [[languages.en.menus.main]]
+      name = "Projects"
+      pageRef = "/projects"
+      weight = 40
+    [[languages.en.menus.main]]
+      name = "Tech stack"
+      url = "#technical"
+      weight = 50
+    [[languages.en.menus.main]]
+      name = "Contact"
+      url = "#contact"
+      weight = 60
+    # "Blog" is NOT a menu entry: nav.html adds it automatically once a post exists.
+
+  [languages.es]
+    label = "Español"
+    locale = "es-MX"
+    weight = 2
+    contentDir = "content/es"
+    title = "Victor Molina"
+    [languages.es.params]
+      tagline = "Security AI Engineer. Desarrollo IA confiable para equipos de ciberseguridad."
+      description = "Victor Molina, Security AI Engineer en la CDMX: sistemas LLM en producción, inteligencia de amenazas y gobierno de IA para equipos de seguridad."
+      hero_description = "Diseño y opero sistemas de IA en producción para el equipo de Global Information Security de Levi Strauss & Co.: pipelines de inteligencia de amenazas, análisis multiagente en Azure y los controles que hacen que la IA aplicada a la seguridad sea medible y auditable."
+      hero_location = "Ciudad de México, México"
+      og_locale = "es_MX"
+      resume_url = ""
+      collab_tags = [
+        "Seguridad en IA y guardrails para LLM",
+        "Ingeniería de inteligencia de amenazas",
+        "Sistemas multiagente en Azure",
+        "Pipelines de datos (Airflow, PostgreSQL)",
+        "Full stack (Python, React)",
+      ]
+    [[languages.es.menus.main]]
+      name = "Sobre mí"
+      url = "#about"
+      weight = 10
+    [[languages.es.menus.main]]
+      name = "Habilidades"
+      url = "#skills"
+      weight = 20
+    [[languages.es.menus.main]]
+      name = "Experiencia"
+      url = "#experience"
+      weight = 30
+    [[languages.es.menus.main]]
+      name = "Proyectos"
+      pageRef = "/projects"
+      weight = 40
+    [[languages.es.menus.main]]
+      name = "Tecnologías"
+      url = "#technical"
+      weight = 50
+    [[languages.es.menus.main]]
+      name = "Contacto"
+      url = "#contact"
+      weight = 60
+
+# ---------------------------------------------------------------------
+# Site-wide params (language-independent)
+# ---------------------------------------------------------------------
+[params]
+  name = "Victor Molina"
+  firstName = "Victor"
+  lastName = "Molina"
+  author = "Victor Molina"
+  copyright = "Victor Molina"
+  profile_image = "images/profile/victor-molina-portrait.jpg"   # assets/ path, processed by partials/img.html
+  hero_background = "images/backgrounds/hero-golden-gate-sunrise.jpg"
+  og_image = "images/backgrounds/hero-golden-gate-sunrise.jpg"   # source for generated 1200x630 OG cards
+
+  # NOT set on purpose: email, calendly_url, formspreeendpoint, pexelsapikey, emergency_contact.
+  # The theme prints `params.email` in plain text; contact data lives in [params.contact] instead.
+
+  linkedin_url = "https://www.linkedin.com/in/victormolinaalba/"
+  linkedin_text = "linkedin.com/in/victormolinaalba"
+  github_url = "https://github.com/vic-mol"
+  github_text = "github.com/vic-mol"
+
+  [params.contact]
+    # Reversed string, then Base64 — decoded by assets/js/site.js. Never commit the plain values.
+    email_rb64 = "bW9jLmxpYW1ub3RvcnBAYWJsYS5hbmlsb20ucm90Y2l2"      # email
+    phone_tel_rb64 = "ODg4NjA5MTI1NTI1Kw=="                            # tel: E.164
+    phone_display_rb64 = "ODg4NiAwOTEyIDU1IDI1Kw=="                    # display format
+    linkedin_qr_svg = "images/qr/linkedin-qr.svg"                      # assets/ path
+    linkedin_qr_png = "images/qr/linkedin-qr.png"
+
+  [[params.social]]
+    icon = "linkedin-in"
+    url = "https://www.linkedin.com/in/victormolinaalba/"
+    label = "LinkedIn"
+  [[params.social]]
+    icon = "github"
+    url = "https://github.com/vic-mol"
+    label = "GitHub"
+
+  # One palette only = fixed brand colors (theme JS randomizer is removed in baseof.html).
+  [params.color_palettes]
+    [[params.color_palettes.palette]]
+      name = "bay-first-light"
+      main_color = "#22405F"     # Bay Navy
+      second_color = "#B5382C"   # Bridge Orange
+      third_color = "#8A5640"    # Palace Terracotta
+
+  # Required by the theme's pexels-config partial until baseof.html stops including it.
+  [params.pexels]
+    queries = ["unused"]
