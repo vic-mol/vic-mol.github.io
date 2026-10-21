@@ -1,0 +1,21 @@
+# Planning files: contain plain contact details, never commit
+/PLAN.md
+/portfolio-assets.zip
+
+# Build output and caches
+/public/
+/resources/
+/node_modules/
+/hugo_stats.json
+/.hugo_build.lock
+/.lighthouseci/
+
+# Full-resolution photo originals with GPS metadata: never commit
+/_photos-src/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+.env*
