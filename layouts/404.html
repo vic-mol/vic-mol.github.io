@@ -1,0 +1,71 @@
+{{- /*
+  Bilingual 404 (PLAN 4.9). GitHub Pages serves /404.html for every missing URL, /es/... included, so
+  the one root 404 shows both languages, English first, each in a block with its own lang attribute.
+  Hugo also writes /es/404.html from this same template; it is unused but harmless and identical in content.
+
+  Where the words come from: Hugo renders a template once per language and i18n only knows the language
+  being rendered, so the other language's strings are read straight from its i18n file (i18n/<lang>.toml)
+  with os.ReadFile + transform.Unmarshal. The keys are the ones the theme already uses on its 404:
+  pageNotFound, pageNotFoundSubtitle, goHome and projects. A missing key fails the build.
+  Links are the RelPermalink of the home page and of /projects of each language's own site, so they stay
+  correct under any baseURL, including one with a sub-path.
+
+  Structure: one h1 ("404"), then one h2 per language. The header (language switcher, theme toggle) and
+  the footer come from baseof.html. The background photo is decorative and sits under the hero overlay.
+*/ -}}
+{{ define "main" }}
+{{- $page := . -}}
+{{- $blocks := slice -}}
+{{- range hugo.Sites -}}
+  {{- $site := . -}}
+  {{- $lang := .Language.Lang -}}
+  {{- $file := printf "i18n/%s.toml" $lang -}}
+  {{- $strings := dict -}}
+  {{- with os.ReadFile $file -}}
+    {{- $strings = . | transform.Unmarshal (dict "format" "toml") -}}
+  {{- else -}}
+    {{- errorf "404.html: cannot read %s" $file -}}
+  {{- end -}}
+  {{- $text := dict -}}
+  {{- range slice "pageNotFound" "pageNotFoundSubtitle" "goHome" "projects" -}}
+    {{- $key := . -}}
+    {{- $value := "" -}}
+    {{- with index $strings $key }}{{ $value = .other | default "" }}{{ end -}}
+    {{- if eq $value "" }}{{ errorf "404.html: key %q has no translation in %s" $key $file }}{{ end -}}
+    {{- $text = merge $text (dict $key $value) -}}
+  {{- end -}}
+  {{- $projects := $site.Home.RelPermalink -}}
+  {{- with $site.GetPage "/projects" }}{{ $projects = .RelPermalink }}{{ else }}{{ errorf "404.html: the projects section is missing in language %q" $lang }}{{ end -}}
+  {{- $blocks = $blocks | append (dict "lang" $lang "locale" .Language.Locale "home" $site.Home.RelPermalink "projects" $projects "text" $text) -}}
+{{- end -}}
+
+<section class="error-hero on-dark">
+  <div class="error-hero__bg" aria-hidden="true">
+    {{- partial "img.html" (dict
+          "page" $page
+          "src" "images/backgrounds/bay-pink-sunrise.jpg"
+          "widths" (slice 1024 1600 2400)
+          "sizes" "100vw"
+          "loading" "lazy"
+          "decorative" true
+          "class" "block h-full w-full object-cover") -}}
+  </div>
+  <div class="hero-overlay error-hero__shade" aria-hidden="true"></div>
+
+  <div class="error-hero__inner">
+    <h1 class="error-hero__code font-heading">404</h1>
+    <div class="error-hero__grid">
+      {{- range $blocks }}
+      <div class="error-card" lang="{{ .locale }}">
+        <h2 class="error-card__title font-heading">{{ .text.pageNotFound }}</h2>
+        <p class="error-card__text">{{ .text.pageNotFoundSubtitle }}</p>
+        <ul class="error-card__actions" role="list">
+          <li><a class="error-btn error-btn--primary" href="{{ .home }}"><i class="fa-solid fa-house" aria-hidden="true"></i><span>{{ .text.goHome }}</span></a></li>
+          <li><a class="error-btn error-btn--secondary" href="{{ .projects }}"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>{{ .text.projects }}</span></a></li>
+        </ul>
+      </div>
+      {{- end }}
+    </div>
+  </div>
+</section>
+{{ end }}

@@ -1,0 +1,28 @@
+{{- /*
+  Photo gallery page (/gallery/, /es/gallery/), PLAN 4.7 and 7.4.
+
+  content/<lang>/gallery/_index.md holds the intro text and the {{< photo-gallery set="sf-2026" >}}
+  shortcode (layouts/shortcodes/photo-gallery.html, T6), which renders the figure grid. This layout only
+  provides the page frame: one h1, the back link to the About section it is linked from, and the content.
+  There are no other headings, so the outline is h1 -> (nothing empty). The intro paragraphs are limited
+  to 65ch; the grid is not (see .gallery-content in the T8 CSS).
+*/ -}}
+{{ define "main" }}
+<section class="pt-8 pb-16 bg-bg dark:bg-bg">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ printf "%s#about" site.Home.RelPermalink }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "aboutMe" }}</a></p>
+
+    <header class="mb-6">
+      <h1 class="m-0 text-3xl md:text-4xl font-bold font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h1>
+    </header>
+
+    {{- with .Content }}
+    <div class="gallery-content post-prose prose prose-lg max-w-none dark:prose-invert">{{ . }}</div>
+    {{- else }}
+    {{- with .Description }}
+    <p class="m-0 max-w-prose text-lg text-text-secondary dark:text-text-secondary">{{ . }}</p>
+    {{- end }}
+    {{- end }}
+  </div>
+</section>
+{{ end }}

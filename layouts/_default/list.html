@@ -1,0 +1,88 @@
+{{- /*
+  Section list (PLAN 6.3, T8). Overrides the CareerCanvas list.html; used by the projects section
+  (posts, tags and the gallery have their own layouts).
+
+  Kept from the theme: a responsive card grid, ordered by weight. Changed:
+    - images go through partials/img.html (the cover SVGs are decorative: alt="" + aria-hidden);
+    - heading levels run h1 (page title) -> h2 (card titles), and the empty state is translated;
+    - a project card shows the "Work case study" / "Personal project" badge (front matter `kind`)
+      and the first four `stack` entries as pills; both are skipped for pages that do not set them,
+      so the template also works for any other section;
+    - the theme's sidebar of mini cards is gone (it repeated the grid).
+  The title link is stretched over the whole card (.stretched-link, T9 CSS), so the cover needs no link.
+*/ -}}
+{{ define "main" }}
+{{- $pages := .Pages.ByWeight -}}
+<section class="pt-8 pb-16 bg-bg dark:bg-bg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="mb-10">
+      <h1 class="mb-4 text-3xl md:text-4xl font-bold font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h1>
+      {{- with .Content }}
+      <div class="post-prose prose prose-lg max-w-prose dark:prose-invert">{{ . }}</div>
+      {{- else }}
+      {{- with .Description }}
+      <p class="m-0 max-w-prose text-lg text-text-secondary dark:text-text-secondary">{{ . }}</p>
+      {{- end }}
+      {{- end }}
+    </header>
+
+    {{- if $pages }}
+    <ul class="m-0 grid list-none gap-6 p-0 md:grid-cols-2 lg:grid-cols-3" role="list">
+      {{- range $pages }}
+      {{- $card := . -}}
+      {{- $kind := .Params.kind -}}
+      <li class="m-0 p-0">
+        <article class="post-card project-card relative flex h-full flex-col overflow-hidden rounded-xl border border-border-primary bg-bg-secondary dark:border-border-primary dark:bg-bg-tertiary">
+          <div class="project-card__cover" aria-hidden="true">
+            {{- with .Params.featured_image }}
+            {{- $args := dict "page" $card "src" . "decorative" true "sizes" "(min-width: 1024px) 384px, (min-width: 768px) 50vw, 100vw" "class" "block w-full h-auto" -}}
+            {{- /* A raster cover is cropped to the same 8:5 shape as the SVG covers. */ -}}
+            {{- if not (strings.HasSuffix (lower .) ".svg") }}{{ $args = merge $args (dict "ratio" "8:5" "widths" (slice 480 800 1200)) }}{{ end -}}
+            {{- partial "img.html" $args -}}
+            {{- else }}
+            <div class="project-card__placeholder"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></div>
+            {{- end }}
+          </div>
+
+          <div class="flex flex-1 flex-col gap-3 p-6">
+            {{- if eq $kind "case-study" }}
+            <p class="m-0"><span class="kind-badge kind-badge--case-study"><i class="fa-solid fa-briefcase" aria-hidden="true"></i>{{ i18n "caseStudy" }}</span></p>
+            {{- else if eq $kind "personal" }}
+            <p class="m-0"><span class="kind-badge kind-badge--personal"><i class="fa-solid fa-laptop-code" aria-hidden="true"></i>{{ i18n "personalProject" }}</span></p>
+            {{- end }}
+
+            <h2 class="m-0 text-xl font-semibold leading-snug font-heading">
+              <a class="post-title-link stretched-link" href="{{ .RelPermalink }}">{{ .Title }}</a>
+            </h2>
+
+            {{- with .Description }}
+            <p class="m-0 text-sm leading-relaxed text-text-secondary dark:text-text-secondary">{{ . }}</p>
+            {{- end }}
+
+            {{- with .Params.stack }}
+            <ul class="stack-list mt-auto pt-1" role="list" aria-label="{{ i18n "stack" }}">
+              {{- range first 4 . }}
+              <li class="stack-pill">{{ . }}</li>
+              {{- end }}
+              {{- if gt (len .) 4 }}
+              <li class="stack-pill stack-pill--more">+{{ sub (len .) 4 }}</li>
+              {{- end }}
+            </ul>
+            {{- end }}
+          </div>
+        </article>
+      </li>
+      {{- end }}
+    </ul>
+    {{- else }}
+    <div class="text-center py-12">
+      <div class="bg-bg-secondary dark:bg-bg-tertiary rounded-xl border border-border-primary dark:border-border-primary p-8 max-w-md mx-auto">
+        <i class="fa-solid fa-folder-open text-4xl text-text-muted dark:text-text-muted mb-4" aria-hidden="true"></i>
+        <h2 class="text-lg font-semibold text-text-secondary dark:text-text-secondary mb-2">{{ i18n "noItemsYet" }}</h2>
+        <p class="m-0 text-sm text-text-muted dark:text-text-muted">{{ i18n "noItemsYetBody" }}</p>
+      </div>
+    </div>
+    {{- end }}
+  </div>
+</section>
+{{ end }}

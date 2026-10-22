@@ -2,7 +2,8 @@
    Site layer on top of the CareerCanvas theme CSS (which stays untouched).
    Order in the bundle: theme main.css → fonts.css → this file → syntax.css.
    Palette: "Bay at first light" (see hugo.toml params.color_palettes).
-   Later tasks add their own delimited blocks:  /* == T7: contact == */
+   Later tasks add their own delimited blocks, headed "== T7: contact ==" (no nested comment markers
+   here: a comment ends at the first star-slash, and the stray rest of this banner broke the :root rule).
    ========================================================================== */
 
 /* == T4: tokens ========================================================== */
@@ -825,4 +826,346 @@ html.no-js #menu-btn { display: none; }
   font-size: .875rem;
   text-align: center;
   color: var(--color-text-secondary);
+}
+
+/* == T8: projects, gallery, 404 == */
+/* Project cards and pages (layouts/_default/list.html + single.html), the gallery page
+   (layouts/gallery/list.html) and the bilingual 404 (layouts/404.html). Cards reuse the T9 pieces
+   (.post-card, .stretched-link, .post-title-link, .tag-pill, .meta-link, .post-prose). */
+
+/* "Work case study" / "Personal project": navy fill = work, terracotta outline = personal.
+   White on Bay Navy 10.7:1; Palace Terracotta on Fog 5.1:1; in dark mode Bay Navy on First Light 7:1
+   and the lighter terracotta (#D9A27F) on the dark surfaces 7.4:1. */
+.kind-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .2rem .75rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: .01em;
+}
+
+.kind-badge--case-study {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.dark .kind-badge--case-study {
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.kind-badge--personal {
+  border-color: var(--color-third);
+  color: var(--color-third);
+}
+
+/* Stack pills: the same "metadata voice" as .tag-pill, but not links */
+.stack-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stack-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: .15rem .65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  line-height: 1.6;
+}
+
+.stack-pill--more {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+/* Project list cards */
+.project-card__cover {
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+  background: #112030;
+  line-height: 0;
+}
+
+.project-card__cover img {
+  transition: transform .4s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .project-card:hover .project-card__cover img {
+    transform: scale(1.04);
+  }
+}
+
+.project-card__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 8 / 5;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+/* Project page: text on the left, cover on the right from 64rem; stacked below that */
+.project-hero {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (min-width: 64rem) {
+  .project-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+    gap: 3rem;
+  }
+}
+
+.project-hero__cover {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: #112030;
+  box-shadow: 0 12px 32px var(--color-shadow-light);
+  line-height: 0;
+}
+
+.project-stack-label {
+  margin: 1.5rem 0 .5rem;
+  color: var(--color-text-muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: .5rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: .5rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.project-link:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.project-link--primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.project-link--primary:hover {
+  border-color: var(--color-second);
+  background: var(--color-second);
+}
+
+.dark .project-link {
+  border-color: var(--color-first-light);
+  color: var(--color-first-light);
+}
+
+.dark .project-link:hover,
+.dark .project-link--primary {
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.dark .project-link--primary:hover {
+  border-color: #fff;
+  background: #fff;
+}
+
+.project-private {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  color: var(--color-text-secondary);
+  font-size: .9375rem;
+}
+
+.project-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 65ch;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Gallery page: only the intro paragraphs are held to a reading width, the photo grid is not.
+   .post-prose gives figures a 2rem margin and centers captions; undo both inside the grid. */
+.gallery-content > p {
+  max-width: 65ch;
+}
+
+.gallery-content .photo-gallery figure {
+  margin: 0;
+}
+
+.gallery-content .photo-gallery img {
+  border-radius: 0;
+}
+
+.gallery-content .photo-gallery figcaption {
+  text-align: left;
+}
+
+/* 404: photo under the hero overlay, one h1, then one card per language (English first).
+   Always light-on-dark, so there are no .dark variants; focus rings come from .on-dark (T4). */
+.error-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: clamp(28rem, 72vh, 48rem);
+  overflow: hidden;
+  color: #fff;
+}
+
+.error-hero__bg,
+.error-hero__shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.error-hero__bg picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.error-hero__bg img {
+  object-position: center 60%;
+}
+
+.error-hero__inner {
+  position: relative;
+  width: 100%;
+  max-width: 64rem;
+  margin-inline: auto;
+  padding: 3rem 1rem;
+}
+
+@media (min-width: 40rem) {
+  .error-hero__inner { padding: 4rem 1.5rem; }
+}
+
+.error-hero__code {
+  margin: 0 0 1.5rem;
+  color: var(--color-first-light);
+  font-size: clamp(4rem, 14vw, 8rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+
+.error-hero__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .error-hero__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.error-card {
+  padding: 1.5rem;
+  border: 1px solid rgb(255 255 255 / .2);
+  border-radius: 1rem;
+  background: rgb(14 27 42 / .4);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.error-card__title {
+  margin: 0 0 .75rem;
+  color: #fff;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.error-card__text {
+  margin: 0 0 1.5rem;
+  color: #E9ECEF;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.error-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.error-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  min-height: 44px;
+  padding: .55rem 1.1rem;
+  border: 1px solid var(--color-first-light);
+  border-radius: .5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.error-btn--primary {
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.error-btn--primary:hover {
+  border-color: #fff;
+  background: #fff;
+}
+
+.error-btn--secondary {
+  background: transparent;
+  color: var(--color-first-light);
+}
+
+.error-btn--secondary:hover {
+  background: rgb(242 201 168 / .16);
+  color: #fff;
 }
