@@ -126,3 +126,29 @@
     decodeContacts();
   });
 })();
+
+/* == T5 == */
+/* Language switcher on the home page: keep the #anchor. partials/lang-switch.html marks the links with
+   data-keep-hash there; this copies location.hash onto them (on load, on hashchange and on click), so
+   /#experience -> /es/#experience. The link's href in the HTML stays the plain translation URL. */
+(function () {
+  'use strict';
+
+  function initLangSwitch() {
+    document.querySelectorAll('a[data-lang-switch][data-keep-hash]').forEach(function (a) {
+      if (a.dataset.hashBound) return;
+      a.dataset.hashBound = '1';
+      var base = a.getAttribute('href').split('#')[0];
+      var sync = function () { a.setAttribute('href', base + location.hash); };
+      sync();
+      a.addEventListener('click', sync);
+      window.addEventListener('hashchange', sync);
+    });
+  }
+
+  window.Site = window.Site || {};
+  window.Site.initLangSwitch = initLangSwitch;
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initLangSwitch);
+  else initLangSwitch();
+})();

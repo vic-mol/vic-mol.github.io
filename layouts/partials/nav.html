@@ -1,0 +1,75 @@
+{{- /*
+  Site header: brand, main navigation, language switcher, social links, theme toggle, mobile menu.
+  Overrides the CareerCanvas nav.html. There is no inline script and no console output: behaviour
+  lives in assets/js/site.js (initMenu: #menu-btn and #mobile-menu; initTheme: #theme-toggle;
+  initLangSwitch: keeps the #anchor when switching language on the home page).
+
+  80rem and wider: brand | links | EN · ES | social | theme toggle.
+  Narrower:        brand | EN · ES | theme toggle | menu button; the links and the social icons live in
+                   #mobile-menu. With JavaScript off (html.no-js) the panel is always open and the two
+                   buttons are hidden (rules in assets/css/site.css, T5 block).
+  Only the desktop list is a <nav> (aria-label "Main navigation"), so there is never a second landmark
+  with the same name; the panel is a plain <div> toggled by the menu button.
+*/ -}}
+{{- $home := site.Home.RelPermalink -}}
+
+{{- /* One list of links for both the desktop bar and the mobile panel. */ -}}
+{{- $links := slice -}}
+{{- range site.Menus.main -}}
+  {{- $href := "" -}}
+  {{- if hasPrefix .URL "#" -}}{{- $href = printf "%s%s" $home .URL -}}{{- else -}}{{- $href = .URL | relLangURL -}}{{- end -}}
+  {{- $links = $links | append (dict "name" .Name "href" $href "current" (eq $href $.RelPermalink)) -}}
+{{- end -}}
+{{- /* The Blog link is not a menu entry: it appears with the first published post of this language. */ -}}
+{{- if partial "has-posts.html" . -}}
+  {{- $blog := "posts/" | relLangURL -}}
+  {{- with site.GetPage "/posts" }}{{ $blog = .RelPermalink }}{{ end -}}
+  {{- $links = $links | append (dict "name" (i18n "blog") "href" $blog "current" (eq $blog $.RelPermalink)) -}}
+{{- end -}}
+
+<header class="site-header">
+  <div class="site-header__bar">
+    <a href="{{ $home }}" class="site-brand font-heading">{{ site.Params.name | default site.Title }}</a>
+
+    <div class="site-header__actions">
+      <nav class="site-nav" aria-label="{{ i18n "mainNavigation" }}">
+        <ul class="site-nav__list">
+          {{- range $links }}
+          <li><a class="site-nav__link" href="{{ .href }}"{{ if .current }} aria-current="page"{{ end }}>{{ .name }}</a></li>
+          {{- end }}
+        </ul>
+      </nav>
+
+      {{ partial "lang-switch.html" . }}
+
+      <ul class="site-social">
+        {{- range site.Params.social }}
+        <li><a class="icon-btn" href="{{ .url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ .label | default .icon }} {{ i18n "opensInNewTab" }}"><i class="fa-brands fa-{{ .icon }}" aria-hidden="true"></i></a></li>
+        {{- end }}
+      </ul>
+
+      <button id="theme-toggle" type="button" class="icon-btn theme-toggle" aria-pressed="false" aria-label="{{ i18n "themeToggle" }}">
+        <i class="fa-solid fa-moon theme-toggle__moon" aria-hidden="true"></i>
+        <i class="fa-solid fa-sun theme-toggle__sun" aria-hidden="true"></i>
+      </button>
+
+      <button id="menu-btn" type="button" class="icon-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="{{ i18n "openMenu" }}" data-label-open="{{ i18n "openMenu" }}" data-label-close="{{ i18n "closeMenu" }}">
+        <i class="fa-solid fa-bars menu-icon-open" aria-hidden="true"></i>
+        <i class="fa-solid fa-xmark menu-icon-close" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu hidden">
+    <ul class="mobile-menu__list">
+      {{- range $links }}
+      <li><a class="site-nav__link" href="{{ .href }}"{{ if .current }} aria-current="page"{{ end }}>{{ .name }}</a></li>
+      {{- end }}
+    </ul>
+    <ul class="mobile-menu__social">
+      {{- range site.Params.social }}
+      <li><a class="icon-btn" href="{{ .url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ .label | default .icon }} {{ i18n "opensInNewTab" }}"><i class="fa-brands fa-{{ .icon }}" aria-hidden="true"></i></a></li>
+      {{- end }}
+    </ul>
+  </div>
+</header>
