@@ -59,7 +59,11 @@ jobs:
           npx --yes http-server@14.1.1 public -p 8080 -s -g &
           for _ in $(seq 1 30); do curl -sf -o /dev/null http://localhost:8080/ && exit 0; sleep 1; done
           echo "http-server did not start" >&2; exit 1
+      # Use the runner's own Chrome. Without this, a warm npm cache restores the npx install of pa11y-ci but not
+      # puppeteer's separately downloaded Chrome (~/.cache/puppeteer), and the step dies with "Could not find Chrome".
       - name: Accessibility (axe via pa11y-ci, every URL in both sitemaps)
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
         run: npx --yes pa11y-ci@5.0.0 --config .pa11yci.json
       - name: Lighthouse CI
         run: npx --yes @lhci/cli@0.15.1 autorun --config=./lighthouserc.json
