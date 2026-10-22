@@ -1,0 +1,60 @@
+{{- /*
+  A blog post. Table of contents, related posts and post metadata are adapted from hugo-mana-theme (c) 2024 Livour, MIT.
+  The cover goes through partials/img.html (T6) and is skipped while that partial does not exist.
+*/ -}}
+{{ define "main" }}
+<article class="pt-8 pb-16 bg-bg dark:bg-bg">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    {{- with .CurrentSection }}
+    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "allPosts" }}</a></p>
+    {{- end }}
+
+    <header class="mb-8">
+      <h1 class="mb-4 text-3xl md:text-5xl font-bold leading-tight font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h1>
+      {{ partial "post-meta.html" (dict "page" . "tags" true "label" true) }}
+      {{- range .Translations }}
+      {{- /* The translation's language name is the link (i18n escapes its arguments, so a marker is swapped for the link afterwards). */}}
+      {{- $link := printf `<a class="meta-link" href="%s" hreflang="%s" lang="%s">%s</a>` .RelPermalink .Language.Lang .Language.Lang (.Language.Label | htmlEscape) }}
+      <p class="post-translation mt-4 mb-0 text-sm text-text-secondary dark:text-text-secondary"><i class="fa-solid fa-language" aria-hidden="true"></i> {{ replace (i18n "translationAvailable" (dict "Label" "@@LANG@@")) "@@LANG@@" $link | safeHTML }}</p>
+      {{- end }}
+    </header>
+
+    {{- with .Params.cover }}
+    {{- if templates.Exists "partials/img.html" }}
+    {{- $args := dict "page" $ "src" . "widths" (slice 480 800 1200) "sizes" "(min-width: 768px) 720px, 100vw" "ratio" "16:9" "loading" "eager" "fetchpriority" "high" "class" "w-full h-auto rounded-xl" }}
+    {{- with $.Params.coverAlt }}{{ $args = merge $args (dict "alt" .) }}{{ end }}
+    <div class="post-cover mb-8">{{ partial "img.html" $args }}</div>
+    {{- end }}
+    {{- end }}
+
+    {{ partial "toc.html" . }}
+
+    <div class="post-prose prose prose-lg max-w-prose dark:prose-invert">
+      {{ .Content }}
+    </div>
+
+    {{- /* Chronological neighbours inside the language: "previous" = older, "next" = newer.
+         (Section pages are ordered newest first; Hugo's PrevInSection is the older page, NextInSection the newer one.) */}}
+    {{- $older := .PrevInSection }}
+    {{- $newer := .NextInSection }}
+    {{- if or $older $newer }}
+    <nav class="post-nav mt-16 grid gap-4 sm:grid-cols-2" aria-label="{{ i18n "blog" }}">
+      {{- with $older }}
+      <a class="post-nav-link" rel="prev" href="{{ .RelPermalink }}">
+        <span class="post-nav-label"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "previousPost" }}</span>
+        <span class="post-nav-title">{{ .Title }}</span>
+      </a>
+      {{- else }}<span class="hidden sm:block" aria-hidden="true"></span>{{- end }}
+      {{- with $newer }}
+      <a class="post-nav-link sm:text-right" rel="next" href="{{ .RelPermalink }}">
+        <span class="post-nav-label sm:justify-end">{{ i18n "nextPost" }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+        <span class="post-nav-title">{{ .Title }}</span>
+      </a>
+      {{- end }}
+    </nav>
+    {{- end }}
+
+    {{ partial "related-posts.html" . }}
+  </div>
+</article>
+{{ end }}

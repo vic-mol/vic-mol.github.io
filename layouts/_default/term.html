@@ -1,0 +1,75 @@
+{{- /*
+  One tag page (/tags/<tag>/, /es/tags/<tag>/): the posts carrying the tag (paginated, newest first).
+  Projects share the same tag taxonomy, so any project with the tag is listed after the posts.
+  Post metadata, pagination and the card pattern are adapted from hugo-mana-theme (c) 2024 Livour, MIT.
+*/ -}}
+{{ define "main" }}
+{{- $term := .Data.Term -}}
+{{- $posts := where .Pages "Section" "posts" -}}
+{{- $projects := where .Pages "Section" "projects" -}}
+<section class="pt-8 pb-16 bg-bg dark:bg-bg">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="mb-10">
+      <p class="mb-2 text-sm font-medium">
+        {{- with .Parent }}<a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-tags" aria-hidden="true"></i> {{ i18n "tags" }}</a>{{ end -}}
+      </p>
+      <h1 class="text-3xl md:text-4xl font-bold mb-3 font-heading text-text-primary dark:text-text-primary">
+        {{- if $posts }}{{ i18n "taggedWith" }} <span class="tag-name">{{ $term }}</span>{{ else }}<span class="tag-name">{{ $term }}</span>{{ end -}}
+      </h1>
+      {{- if $posts }}
+      {{- with .OutputFormats.Get "rss" }}
+      <p class="mt-4 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-rss" aria-hidden="true"></i> {{ i18n "subscribeRss" }}</a></p>
+      {{- end }}
+      {{- end }}
+    </header>
+
+    {{- if $posts }}
+    {{- $paginator := .Paginate ($posts.ByDate.Reverse) }}
+    <ol class="m-0 flex list-none flex-col gap-6 p-0" role="list">
+      {{- range $paginator.Pages }}
+      <li>
+        <article class="post-card relative rounded-xl border border-border-primary bg-bg-secondary p-6 dark:border-border-primary dark:bg-bg-tertiary">
+          <h2 class="mb-2 text-xl md:text-2xl font-semibold leading-snug font-heading">
+            <a class="post-title-link stretched-link" href="{{ .RelPermalink }}">{{ .Title }}</a>
+          </h2>
+          {{ partial "post-meta.html" (dict "page" . "tags" true) }}
+          {{- with .Description }}
+          <p class="mt-3 mb-0 text-text-secondary dark:text-text-secondary">{{ . }}</p>
+          {{- end }}
+        </article>
+      </li>
+      {{- end }}
+    </ol>
+    {{ partial "pagination.html" . }}
+    {{- end }}
+
+    {{- with $projects }}
+    <section class="{{ if $posts }}mt-16{{ end }}" aria-labelledby="tag-projects-title">
+      <h2 id="tag-projects-title" class="mb-4 text-2xl font-bold font-heading text-text-primary dark:text-text-primary">{{ i18n "projects" }}</h2>
+      <ul class="m-0 grid list-none gap-4 p-0 sm:grid-cols-2" role="list">
+        {{- range .ByWeight }}
+        <li class="post-card relative rounded-xl border border-border-primary bg-bg-secondary p-4 dark:border-border-primary dark:bg-bg-tertiary">
+          <h3 class="mb-1 text-base font-semibold leading-snug font-heading">
+            <a class="post-title-link stretched-link" href="{{ .RelPermalink }}">{{ .Title }}</a>
+          </h3>
+          {{- with .Description }}
+          <p class="m-0 text-sm text-text-secondary dark:text-text-secondary">{{ . }}</p>
+          {{- end }}
+        </li>
+        {{- end }}
+      </ul>
+    </section>
+    {{- end }}
+
+    {{- if not (or $posts $projects) }}
+    <div class="text-center py-12">
+      <div class="bg-bg-secondary dark:bg-bg-tertiary rounded-xl border border-border-primary dark:border-border-primary p-8 max-w-md mx-auto">
+        <i class="fa-solid fa-tags text-4xl text-text-muted dark:text-text-muted mb-4" aria-hidden="true"></i>
+        <h2 class="text-lg font-semibold text-text-secondary dark:text-text-secondary mb-2">{{ i18n "noItemsYet" }}</h2>
+        <p class="m-0 text-sm text-text-muted dark:text-text-muted">{{ i18n "noItemsYetBody" }}</p>
+      </div>
+    </div>
+    {{- end }}
+  </div>
+</section>
+{{ end }}

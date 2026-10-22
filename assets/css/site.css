@@ -120,3 +120,348 @@ section[data-animate] {
     scroll-behavior: auto !important;
   }
 }
+
+/* == T9: posts == */
+/* Blog layer: post cards, tag pills, table of contents, pagination and the post typography.
+   Colors come from the site tokens (they already switch with .dark); links use Bay Navy on light
+   surfaces and First Light on dark ones (10.7:1 and 10.8:1). Tailwind has no "primary" color in this
+   project, so hover states live here instead of in utility classes. */
+
+/* Links outside the prose: back link, RSS, tags index, translation notice */
+.meta-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .2em;
+}
+
+.meta-link:hover {
+  color: var(--color-second);
+  text-decoration-thickness: 2px;
+}
+
+.dark .meta-link {
+  color: var(--color-first-light);
+}
+
+.dark .meta-link:hover {
+  color: #fff;
+}
+
+.post-translation {
+  max-width: 65ch;
+}
+
+/* Cards (post list, tag page, related posts). The title link is stretched over the whole card. */
+.post-card {
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.post-card:hover {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 8px 24px var(--color-shadow-light);
+}
+
+.dark .post-card:hover {
+  border-color: var(--color-first-light) !important;
+}
+
+.post-card:has(.stretched-link:focus-visible) {
+  outline: 3px solid var(--color-second);
+  outline-offset: 2px;
+}
+
+.dark .post-card:has(.stretched-link:focus-visible) {
+  outline-color: var(--color-first-light);
+}
+
+/* The card shows the focus ring where :has() is supported; elsewhere the link keeps its own ring. */
+@supports selector(:has(a)) {
+  .stretched-link:focus-visible {
+    outline: none;
+  }
+}
+
+.stretched-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.post-title-link {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.post-title-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: .2em;
+}
+
+.dark .post-title-link:hover {
+  color: var(--color-first-light);
+}
+
+/* Tag pills: the "metadata voice" (JetBrains Mono). Above the stretched card link so they stay clickable. */
+.tag-pill {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .15rem .7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.tag-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.dark .tag-pill:hover {
+  border-color: var(--color-first-light);
+  color: var(--color-first-light);
+}
+
+.tag-pill-lg {
+  padding: .4rem .9rem;
+  font-size: .875rem;
+}
+
+.tag-count {
+  padding: 0 .4rem;
+  border-radius: 9999px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  font-size: .75rem;
+}
+
+.dark .tag-count {
+  background: var(--color-bg-tertiary);
+}
+
+.tag-name {
+  color: var(--color-second);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .9em;
+  overflow-wrap: anywhere;
+}
+
+/* Table of contents (collapsible <details>, no JavaScript) */
+.post-toc {
+  max-width: 65ch;
+  margin: 0 0 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-bg-secondary);
+}
+
+.post-toc summary {
+  cursor: pointer;
+  font-family: "Space Grotesk Variable", "IBM Plex Sans", system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.post-toc ul {
+  margin: .5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post-toc ul ul {
+  margin-top: .25rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-border);
+}
+
+.post-toc li {
+  margin: .25rem 0;
+}
+
+.post-toc a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.post-toc a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.dark .post-toc a:hover {
+  color: var(--color-first-light);
+}
+
+/* Previous / next post */
+.post-nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-bg-secondary);
+  text-decoration: none;
+  transition: border-color .2s ease;
+}
+
+.post-nav-link:hover {
+  border-color: var(--color-primary);
+}
+
+.dark .post-nav-link:hover {
+  border-color: var(--color-first-light);
+}
+
+.post-nav-label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--color-text-muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+}
+
+.post-nav-title {
+  color: var(--color-text-primary);
+  font-family: "Space Grotesk Variable", "IBM Plex Sans", system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Pagination: 44px targets */
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 .5rem;
+  border: 1px solid var(--color-border);
+  border-radius: .5rem;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a.page-link:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.dark a.page-link:hover {
+  border-color: var(--color-first-light);
+  color: var(--color-first-light);
+}
+
+.page-link-current {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.dark .page-link-current {
+  border-color: var(--color-first-light);
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.page-link-disabled {
+  opacity: .4;
+}
+
+/* Post typography: Tailwind "prose" mapped onto the site tokens (light and dark share the same variables) */
+.post-prose {
+  --tw-prose-body: var(--color-text-primary);
+  --tw-prose-headings: var(--color-text-primary);
+  --tw-prose-lead: var(--color-text-secondary);
+  --tw-prose-links: var(--color-primary);
+  --tw-prose-bold: var(--color-text-primary);
+  --tw-prose-counters: var(--color-text-muted);
+  --tw-prose-bullets: var(--color-text-muted);
+  --tw-prose-hr: var(--color-border);
+  --tw-prose-quotes: var(--color-text-primary);
+  --tw-prose-quote-borders: var(--color-second);
+  --tw-prose-captions: var(--color-text-muted);
+  --tw-prose-code: var(--color-text-primary);
+  --tw-prose-pre-code: #1f2328;
+  --tw-prose-pre-bg: #f7f7f7;
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border);
+
+  --tw-prose-invert-body: var(--color-text-primary);
+  --tw-prose-invert-headings: var(--color-text-primary);
+  --tw-prose-invert-lead: var(--color-text-secondary);
+  --tw-prose-invert-links: var(--color-first-light);
+  --tw-prose-invert-bold: var(--color-text-primary);
+  --tw-prose-invert-counters: var(--color-text-muted);
+  --tw-prose-invert-bullets: var(--color-text-muted);
+  --tw-prose-invert-hr: var(--color-border);
+  --tw-prose-invert-quotes: var(--color-text-primary);
+  --tw-prose-invert-quote-borders: var(--color-second);
+  --tw-prose-invert-captions: var(--color-text-muted);
+  --tw-prose-invert-code: var(--color-text-primary);
+  --tw-prose-invert-pre-code: #e6edf3;
+  --tw-prose-invert-pre-bg: #0d1117;
+  --tw-prose-invert-th-borders: var(--color-border);
+  --tw-prose-invert-td-borders: var(--color-border);
+}
+
+.post-prose a:hover {
+  color: var(--color-second);
+}
+
+.dark .post-prose a:hover {
+  color: #fff;
+}
+
+.post-prose h2,
+.post-prose h3 {
+  scroll-margin-top: 5rem;
+}
+
+.post-prose img {
+  height: auto;
+  border-radius: .75rem;
+}
+
+.post-prose figure {
+  margin: 2rem 0;
+}
+
+.post-prose figcaption {
+  text-align: center;
+}
+
+.post-prose pre {
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  font-size: .875em;
+}
+
+/* Inline code: a tinted chip instead of Tailwind's backticks */
+.post-prose :not(pre) > code {
+  padding: .1em .35em;
+  border-radius: .35rem;
+  background: var(--color-bg-secondary);
+  font-weight: 500;
+}
+
+.post-prose :not(pre) > code::before,
+.post-prose :not(pre) > code::after {
+  content: none;
+}

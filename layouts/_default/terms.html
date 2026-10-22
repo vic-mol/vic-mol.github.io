@@ -1,0 +1,39 @@
+{{- /*
+  Tag index (/tags/, /es/tags/): every tag of the current language with how many pages carry it.
+  Overrides the CareerCanvas terms.html. Tags are per language, so the two indexes differ.
+*/ -}}
+{{ define "main" }}
+<section class="pt-8 pb-16 bg-bg dark:bg-bg">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="mb-10">
+      <h1 class="text-3xl md:text-4xl font-bold mb-3 font-heading text-text-primary dark:text-text-primary">{{ i18n "tags" }}</h1>
+      {{- /* Only offer the blog once this language has a post (otherwise it is an empty, noindex page). */}}
+      {{- with site.GetPage "/posts" }}{{ if .RegularPages }}
+      <p class="mt-4 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "allPosts" }}</a></p>
+      {{- end }}{{ end }}
+    </header>
+
+    {{- $terms := .Data.Terms.Alphabetical }}
+    {{- if $terms }}
+    <ul class="m-0 flex list-none flex-wrap gap-3 p-0" role="list">
+      {{- range $terms }}
+      <li>
+        <a class="tag-pill tag-pill-lg" href="{{ .Page.RelPermalink }}" rel="tag">
+          <span>{{ .Page.Data.Term }}</span>
+          <span class="tag-count">{{ .Count }}</span>
+        </a>
+      </li>
+      {{- end }}
+    </ul>
+    {{- else }}
+    <div class="text-center py-12">
+      <div class="bg-bg-secondary dark:bg-bg-tertiary rounded-xl border border-border-primary dark:border-border-primary p-8 max-w-md mx-auto">
+        <i class="fa-solid fa-tags text-4xl text-text-muted dark:text-text-muted mb-4" aria-hidden="true"></i>
+        <h2 class="text-lg font-semibold text-text-secondary dark:text-text-secondary mb-2">{{ i18n "noItemsYet" }}</h2>
+        <p class="m-0 text-sm text-text-muted dark:text-text-muted">{{ i18n "noItemsYetBody" }}</p>
+      </div>
+    </div>
+    {{- end }}
+  </div>
+</section>
+{{ end }}

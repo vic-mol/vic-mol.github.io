@@ -1,0 +1,60 @@
+{{- /*
+  Blog index (section "posts"): newest first, 10 per page (pagerSize), translated empty state.
+  Post metadata, pagination and the card pattern are adapted from hugo-mana-theme (c) 2024 Livour, MIT.
+*/ -}}
+{{ define "main" }}
+{{- $posts := .RegularPages.ByDate.Reverse -}}
+<section class="pt-8 pb-16 bg-bg dark:bg-bg">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="mb-10">
+      <h1 class="text-3xl md:text-4xl font-bold mb-3 font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h1>
+      {{- with .Description }}
+      <p class="text-lg text-text-secondary dark:text-text-secondary">{{ . }}</p>
+      {{- end }}
+      {{- if $posts }}
+      <p class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium">
+        {{- with site.GetPage "/tags" }}
+        <a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-tags" aria-hidden="true"></i> {{ i18n "tags" }}</a>
+        {{- end }}
+        {{- with .OutputFormats.Get "rss" }}
+        <a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-rss" aria-hidden="true"></i> {{ i18n "subscribeRss" }}</a>
+        {{- end }}
+      </p>
+      {{- end }}
+    </header>
+
+    {{- with .Content }}
+    <div class="post-prose prose prose-lg max-w-prose dark:prose-invert mb-10">{{ . }}</div>
+    {{- end }}
+
+    {{- if $posts }}
+    {{- $paginator := .Paginate $posts }}
+    <ol class="m-0 flex list-none flex-col gap-6 p-0" role="list">
+      {{- range $paginator.Pages }}
+      <li>
+        <article class="post-card relative rounded-xl border border-border-primary bg-bg-secondary p-6 dark:border-border-primary dark:bg-bg-tertiary">
+          <h2 class="mb-2 text-xl md:text-2xl font-semibold leading-snug font-heading">
+            <a class="post-title-link stretched-link" href="{{ .RelPermalink }}">{{ .Title }}</a>
+          </h2>
+          {{ partial "post-meta.html" (dict "page" . "tags" true) }}
+          {{- with .Description }}
+          <p class="mt-3 mb-0 text-text-secondary dark:text-text-secondary">{{ . }}</p>
+          {{- end }}
+        </article>
+      </li>
+      {{- end }}
+    </ol>
+    {{ partial "pagination.html" . }}
+    {{- else }}
+    {{- /* Nothing published in this language yet: head.html adds noindex, the Blog nav link stays hidden. */}}
+    <div class="text-center py-12">
+      <div class="bg-bg-secondary dark:bg-bg-tertiary rounded-xl border border-border-primary dark:border-border-primary p-8 max-w-md mx-auto">
+        <i class="fa-solid fa-pen-nib text-4xl text-text-muted dark:text-text-muted mb-4" aria-hidden="true"></i>
+        <h2 class="text-lg font-semibold text-text-secondary dark:text-text-secondary mb-2">{{ i18n "noItemsYet" }}</h2>
+        <p class="m-0 text-sm text-text-muted dark:text-text-muted">{{ i18n "noItemsYetBody" }}</p>
+      </div>
+    </div>
+    {{- end }}
+  </div>
+</section>
+{{ end }}
