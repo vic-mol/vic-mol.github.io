@@ -25,6 +25,10 @@
 .chroma .w { color:#fff }
 
 /* ---- dark ---- */
+/* github-dark leaves some tokens (.p, .na, .nb, .bp, .err background ...) to inherit the base colour, but the light
+   rules above would still apply to them in dark mode (dark text on #0d1117). Reset every token first; the dark
+   rules below are more specific and win. */
+.dark .chroma span { color:inherit; background-color:transparent }
 .dark .bg { color:#e6edf3; background-color:#0d1117 }
 .dark .chroma { color:#e6edf3; background-color:#0d1117; -webkit-text-size-adjust:none }
 .dark .chroma .err { color:#f85149 }

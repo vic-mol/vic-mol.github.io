@@ -88,6 +88,16 @@
       sections.forEach(reveal);
       return;
     }
+    // A section reached through a link (#contact, menu, reload on an anchor) is shown at once, without the fade,
+    // so the jump never lands on a blank or half-faded section.
+    var showTarget = function () {
+      var el = null;
+      try { el = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch (e) { /* malformed hash */ }
+      var s = el && el.closest('section[data-animate]');
+      if (s && !s.classList.contains('fade-in-visible')) { s.style.transition = 'none'; reveal(s); }
+    };
+    showTarget();
+    window.addEventListener('hashchange', showTarget);
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) { reveal(entry.target); io.unobserve(entry.target); }
