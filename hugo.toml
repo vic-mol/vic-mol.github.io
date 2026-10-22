@@ -214,7 +214,3 @@ timeZone = "America/Mexico_City"
       main_color = "#22405F"     # Bay Navy
       second_color = "#B5382C"   # Bridge Orange
       third_color = "#8A5640"    # Palace Terracotta
-
-  # Required by the theme's pexels-config partial until baseof.html stops including it.
-  [params.pexels]
-    queries = ["unused"]

@@ -6,7 +6,18 @@
 {{- $siteName := site.Params.name | default site.Title -}}
 {{- $jobTitle := "Security AI Engineer" -}}
 {{- $isPost := and (eq .Section "posts") .IsPage -}}
-{{- $title := cond .IsHome (printf "%s — %s" $siteName $jobTitle) (printf "%s — %s" .Title $siteName) -}}
+{{- /* Titles: "Page — Victor Molina". Hugo's own titles for the 404 ("404 Page not found") and for taxonomy pages
+       (the capitalised English term) are replaced by the translated strings so each language reads correctly. */ -}}
+{{- $title := printf "%s — %s" .Title $siteName -}}
+{{- if .IsHome -}}
+  {{- $title = printf "%s — %s" $siteName $jobTitle -}}
+{{- else if eq .Kind "404" -}}
+  {{- $title = printf "%s — %s" (i18n "pageNotFound") $siteName -}}
+{{- else if eq .Kind "taxonomy" -}}
+  {{- $title = printf "%s — %s" (i18n "tags") $siteName -}}
+{{- else if eq .Kind "term" -}}
+  {{- $title = printf "%s: %s — %s" (i18n "tags") .Data.Term $siteName -}}
+{{- end -}}
 {{- $desc := cond (ne .Description "") .Description site.Params.description -}}
 {{- $posts := where site.RegularPages "Section" "posts" -}}
 
