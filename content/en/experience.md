@@ -16,7 +16,7 @@ positions:
     roles:
       - title: "Security AI Engineer"
         period: "May 2026 – Present"
-        bullet_points:   # [CONFIRM] level of internal detail OK to publish (mirrors public LinkedIn text)
+        bullet_points:
           - "Build and operate production LLM systems the security team uses daily, including an internal AI workspace on Azure OpenAI (GPT and Anthropic models) backed by Azure AI Search and Cosmos DB."
           - "Designed a multi-agent threat-analysis framework on Microsoft AI Foundry: specialized agents for IOC enrichment and SIEM integration, plus auditor agents that validate their output."
           - "Shipped a threat-intelligence intake portal that routes analyst-submitted reports straight into the intelligence pipeline."

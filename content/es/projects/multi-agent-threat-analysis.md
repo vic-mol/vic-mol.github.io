@@ -8,7 +8,6 @@ kind: "case-study"
 featured_image: "images/projects/multi-agent-threat-analysis/cover.svg"
 stack: ["Microsoft AI Foundry", "Azure OpenAI", "Azure AI Search", "Cosmos DB", "Python", "React"]
 tags: ["agentes-de-ia", "seguridad-de-llm", "azure", "inteligencia-de-amenazas"]
-# [CONFIRM] OK to publish this case study? Add a shareable metric to "Result" if possible.
 repo: ""
 live: ""
 ---
