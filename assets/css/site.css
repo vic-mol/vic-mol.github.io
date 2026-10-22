@@ -86,8 +86,15 @@ main:focus {
 /* == T4: motion ========================================================== */
 /* Sections are visible by default (no JavaScript, print, reduced motion).
    The fade-in only exists once the inline init script has added html.js. */
+/* The header is fixed (4rem). scroll-padding keeps both anchor targets and elements scrolled into view by
+   keyboard focus clear of it (WCAG 2.4.11); the theme's scroll-margin on sections is reset so the offsets
+   do not add up. */
+html {
+  scroll-padding-top: 5rem;
+}
+
 section[id] {
-  scroll-margin-top: 5rem;
+  scroll-margin-top: 0;
 }
 
 section[data-animate] {
@@ -428,11 +435,6 @@ a.page-link:hover {
 
 .dark .post-prose a:hover {
   color: #fff;
-}
-
-.post-prose h2,
-.post-prose h3 {
-  scroll-margin-top: 5rem;
 }
 
 .post-prose img {

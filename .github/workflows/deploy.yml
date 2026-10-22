@@ -5,10 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Least privilege: the build job (npm ci, Hugo download, lychee) only reads. Only the deploy job, which runs
+# nothing but actions/deploy-pages, can write to Pages and mint an OIDC token.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -21,8 +21,13 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read      # configure-pages reads the site's base URL
     env:
       HUGO_VERSION: 0.168.0
+      # SHA-256 of hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz (hugo_${HUGO_VERSION}_checksums.txt). Update with HUGO_VERSION.
+      HUGO_SHA256: 787f100057328824f38c6ad7c87ff10d6451ae0a7bc39cedaad0dd2bcde17e53
       NODE_VERSION: 24
       TZ: America/Mexico_City
     steps:
@@ -41,8 +46,9 @@ jobs:
       - name: Install Hugo (extended)
         run: |
           mkdir -p "${HOME}/.local/hugo"
-          curl -sSL "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz" \
-            | tar -xz -C "${HOME}/.local/hugo" hugo
+          curl -fsSL -o "${RUNNER_TEMP}/hugo.tar.gz" "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+          echo "${HUGO_SHA256}  ${RUNNER_TEMP}/hugo.tar.gz" | sha256sum --check --strict
+          tar -xzf "${RUNNER_TEMP}/hugo.tar.gz" -C "${HOME}/.local/hugo" hugo
           echo "${HOME}/.local/hugo" >> "${GITHUB_PATH}"
 
       - name: Show versions
@@ -79,7 +85,7 @@ jobs:
         run: node scripts/check-site.mjs public
 
       - name: Internal link check
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8   # v2.9.0 (third-party: pinned to a commit)
         with:
           args: --offline --no-progress --root-dir "${{ github.workspace }}/public" "public/**/*.html"
           fail: true
@@ -92,6 +98,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
