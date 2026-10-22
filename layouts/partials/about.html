@@ -1,0 +1,100 @@
+{{- /*
+  About. Overrides the CareerCanvas about.html (data: content/<lang>/about.md).
+  Differences from the theme: "More" opens a native <dialog> (no inline script; assets/js/site.js,
+  block T7, wires [data-dialog-open] / [data-dialog-close]; Esc and focus return are built into
+  <dialog>); the About photo and a link to the gallery are new; quick facts are real headings and lists
+  and do not pretend to be clickable; icons are hidden from screen readers.
+  Without JavaScript the dialog is shown inline below the cards (rules in the T7 block of site.css), so
+  the longer text is never lost.
+*/ -}}
+{{- with site.GetPage "about" -}}
+{{- $about := . -}}
+<section id="about" class="py-12 bg-bg dark:bg-bg relative about-section" data-animate>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <h2 class="text-3xl font-bold text-center mb-12 font-heading text-text-primary dark:text-text-primary">{{ i18n "aboutMe" }}</h2>
+    <div class="flex flex-col lg:flex-row gap-8">
+      <div class="flex-1">
+        <div class="bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-xl shadow-lg border border-border-primary dark:border-border-primary">
+          <figure class="about-photo mb-6">
+            {{- partial "img.html" (dict "page" $ "src" "images/about/victor-golden-gate-shoreline.jpg" "ratio" "4:3" "widths" (slice 480 800 1200) "sizes" "(min-width: 1024px) 544px, calc(100vw - 5.5rem)" "class" "about-photo__img") }}
+            <figcaption class="about-photo__caption">
+              <a class="about-photo__link" href="{{ "gallery/" | relLangURL }}">{{ i18n "gallery" }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+              <span class="about-photo__text">{{ i18n "galleryIntro" }}</span>
+            </figcaption>
+          </figure>
+          <div class="text-lg text-text-secondary dark:text-text-secondary leading-relaxed">{{ $about.Params.intro | markdownify }}</div>
+          <div class="mt-6">
+            <a href="{{ site.Params.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center min-h-[44px] bg-gradient-primary text-white px-4 py-2 rounded-lg shadow-lg about-button button-hover">
+              <i class="fa-brands fa-linkedin-in mr-3 text-lg" aria-hidden="true"></i>
+              {{ i18n "connectOnLinkedIn" }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-1">
+        <div class="bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-xl shadow-lg border border-border-primary dark:border-border-primary about-card">
+          <div class="flex items-center justify-between gap-4 mb-6 border-b border-border-primary dark:border-border-primary pb-3">
+            <h3 class="text-xl font-semibold font-heading text-text-primary dark:text-text-primary flex items-center">
+              <i class="fa-solid fa-circle-info mr-3 text-primary dark:text-white" aria-hidden="true"></i>
+              {{ i18n "quickFacts" }}
+            </h3>
+            <button type="button" class="bg-gradient-primary text-white px-6 py-2 min-h-[44px] rounded-lg shadow-lg font-semibold flex items-center about-button text-sm button-hover" data-dialog-open="about-dialog" aria-haspopup="dialog">
+              <i class="fa-solid fa-book-open mr-2" aria-hidden="true"></i>
+              {{ i18n "more" }}
+            </button>
+          </div>
+          <div class="space-y-1.5">
+            {{- range $about.Params.quickfacts }}
+            {{- $fact := . }}
+            <div class="quick-fact flex items-start py-2 px-4 rounded-xl">
+              <i class="fa-solid fa-{{ $fact.icon }} quick-fact__icon text-primary dark:text-white text-lg mr-3" aria-hidden="true"></i>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-text-primary dark:text-text-primary mb-1 text-lg">{{ $fact.title }}</h4>
+                {{- $isList := or (eq $fact.kind "interests") (eq $fact.kind "languages") }}
+                {{- if $isList }}
+                <ul class="flex flex-wrap gap-2 p-0 m-0" role="list">
+                  {{- range split $fact.value "\n" }}
+                  {{- $item := . | replaceRE `^\s*[-*]\s*` "" | strings.TrimSpace }}
+                  {{- with $item }}
+                  <li class="inline-flex items-center px-3 py-1.5 text-text-secondary dark:text-text-secondary text-base font-medium border border-border-primary dark:border-border-primary rounded-xl">{{ . | markdownify }}</li>
+                  {{- end }}
+                  {{- end }}
+                </ul>
+                {{- else }}
+                <div class="text-text-secondary dark:text-text-secondary text-base leading-relaxed">{{ $fact.value | markdownify }}</div>
+                {{- end }}
+              </div>
+            </div>
+            {{- end }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <dialog id="about-dialog" class="about-dialog" aria-labelledby="about-dialog-title">
+      <div class="about-dialog__inner">
+        <div class="flex justify-between items-center gap-4 mb-6">
+          <h3 id="about-dialog-title" class="text-2xl font-bold font-heading text-text-primary dark:text-text-primary">{{ i18n "aboutName" }} {{ site.Params.name }}</h3>
+          <button type="button" class="icon-btn about-dialog__close" data-dialog-close aria-label="{{ i18n "closeDialog" }}">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="space-y-6 text-text-secondary dark:text-text-secondary">
+          <div class="about-dialog__intro text-lg leading-relaxed">{{ $about.Params.intro | markdownify }}</div>
+          <div class="text-lg leading-relaxed">{{ $about.Params.study | markdownify }}</div>
+          <div class="about-passion p-6 rounded-xl border border-border-primary dark:border-border-primary">
+            <h4 class="text-xl font-semibold mb-3 text-text-primary dark:text-text-primary flex items-center">
+              <i class="fa-solid fa-heart mr-3 text-second" aria-hidden="true"></i>
+              {{ $about.Params.passion_title }}
+            </h4>
+            <div class="leading-relaxed">{{ $about.Params.passion_text | markdownify }}</div>
+          </div>
+          <div class="text-lg leading-relaxed">{{ $about.Params.mix | markdownify }}</div>
+          <div class="text-lg leading-relaxed">{{ $about.Params.personal | markdownify }}</div>
+        </div>
+      </div>
+    </dialog>
+  </div>
+</section>
+{{- end -}}

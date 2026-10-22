@@ -1,0 +1,65 @@
+{{- /*
+  Contact. Overrides the CareerCanvas contact.html (data: content/<lang>/contact.md + [params.contact]).
+  Gone on purpose: the contact form (Q11: no form), Formspree, Calendly, the Pexels-era toast, every
+  inline <script>, and params.email (it would print the address in plain text).
+  Email and phone come from partials/contact-link.html (encoded in the HTML, decoded by site.js). The
+  contactNoJs sentence is printed once, inside the email row; with JavaScript off the phone row is hidden
+  by the T7 rules in site.css, so the card reads: sentence, LinkedIn link, location.
+  The section sits on a lazy background photo under an 85% navy overlay (the whole section is a dark
+  surface in both themes, hence `on-dark`, which gives the focus ring its First Light colour). The QR
+  tile stays white in dark mode: scanners need dark modules on a light background (PLAN 8.3).
+*/ -}}
+{{- with site.GetPage "contact" -}}
+{{- $contact := site.Params.contact | default dict -}}
+<section id="contact" class="contact-section relative isolate overflow-hidden py-16 lg:py-20 text-white on-dark" data-animate>
+  <div class="contact-bg" aria-hidden="true">
+    {{- partial "img.html" (dict "page" $ "src" "images/backgrounds/bay-morning-golden-gate.jpg" "widths" (slice 1024 1600 2400) "sizes" "100vw" "loading" "lazy" "decorative" true "class" "contact-bg__img") }}
+  </div>
+  <div class="contact-overlay" aria-hidden="true"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl font-bold text-center mb-4 font-heading">{{ .Title }}</h2>
+    {{- with .Params.intro }}
+    <p class="text-lg text-center mb-10 mx-auto max-w-2xl contact-intro">{{ . }}</p>
+    {{- end }}
+
+    <div class="contact-panel mx-auto flex flex-col sm:flex-row sm:items-center gap-8 p-6 sm:p-8 rounded-xl">
+      <dl class="contact-list flex-1 min-w-0">
+        {{- if $contact.email_rb64 }}
+        <div class="contact-row contact-row--email">
+          <dt><i class="fa-solid fa-envelope" aria-hidden="true"></i><span>{{ i18n "emailLabel" }}</span></dt>
+          <dd>{{ partial "contact-link.html" (dict "page" $ "kind" "email" "class" "contact-link" "nojs" true) }}</dd>
+        </div>
+        {{- end }}
+        {{- if $contact.phone_tel_rb64 }}
+        <div class="contact-row contact-row--phone">
+          <dt><i class="fa-solid fa-phone" aria-hidden="true"></i><span>{{ i18n "phoneLabel" }}</span></dt>
+          <dd>{{ partial "contact-link.html" (dict "page" $ "kind" "phone" "class" "contact-link") }}</dd>
+        </div>
+        {{- end }}
+        {{- with site.Params.linkedin_url }}
+        <div class="contact-row contact-row--linkedin">
+          <dt><i class="fa-brands fa-linkedin-in" aria-hidden="true"></i><span>{{ i18n "linkedinLabel" }}</span></dt>
+          <dd><a class="contact-link" href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ site.Params.linkedin_text | default . }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></a></dd>
+        </div>
+        {{- end }}
+        {{- with site.Params.hero_location }}
+        <div class="contact-row contact-row--location">
+          <dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ i18n "locationLabel" }}</span></dt>
+          <dd>{{ . }}</dd>
+        </div>
+        {{- end }}
+      </dl>
+
+      {{- with $contact.linkedin_qr_svg }}
+      <figure class="contact-qr">
+        <div class="contact-qr__tile">
+          {{- partial "img.html" (dict "page" $ "src" . "class" "contact-qr__img") }}
+        </div>
+        <figcaption>{{ i18n "linkedinQrTitle" }}</figcaption>
+      </figure>
+      {{- end }}
+    </div>
+  </div>
+</section>
+{{- end -}}

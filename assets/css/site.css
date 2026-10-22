@@ -1169,3 +1169,541 @@ html.no-js #menu-btn { display: none; }
   background: rgb(242 201 168 / .16);
   color: #fff;
 }
+
+/* == T7: home sections == */
+/* Home page: hero, about (photo, quick facts, dialog), selected projects, tech icons, contact.
+   Markup: layouts/partials/{hero,about,experience,technical,projects-featured,contact}.html.
+   Names are prefixed per component (hero-, about-, quick-fact, featured-card, tech-, contact-) so they
+   cannot collide with the theme's classes or with another task's block. */
+
+:root {
+  --contact-overlay: rgb(14 27 42 / .85);
+}
+
+/* -- Hero ------------------------------------------------------------------ */
+/* Background photo (decorative) under the --hero-overlay gradient. The theme's .gradient-bg stays
+   behind both as the colour shown while the photo loads. */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-bg picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-bg__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 60%;
+}
+
+.hero-section .hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Side by side (lg and up) the text sits on the right half, which holds the brightest part of the sky:
+   a second, lighter layer there keeps white text above 6.3:1 (measured in a browser, see the T7 report).
+   Stacked, the text is centred and the base overlay alone is enough. */
+@media (min-width: 64rem) {
+  .hero-section .hero-overlay {
+    background: var(--hero-overlay), linear-gradient(90deg, transparent 34%, rgb(14 27 42 / .26) 47%);
+  }
+}
+
+.hero-profile-ring picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-text {
+  max-width: 37.5rem;
+}
+
+/* White, not First Light, for the greeting: over the brightest sky the peach measured 4.06:1 (small text needs 4.5). */
+.hero-greeting,
+.hero-title,
+.hero-lead,
+.hero-description {
+  color: #fff;
+}
+
+.hero-greeting {
+  letter-spacing: .02em;
+}
+
+.hero-badge-icon {
+  color: var(--color-first-light);
+}
+
+.hero-lead {
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* A soft dark glass behind the longest text keeps white-on-photo contrast high wherever the sky is bright. */
+.hero-description {
+  background: rgb(14 27 42 / .35);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.hero-button--primary {
+  border: 2px solid #fff;
+  background: #fff;
+  color: var(--color-primary);
+}
+
+.hero-button--primary:hover {
+  border-color: var(--color-first-light);
+  background: var(--color-first-light);
+}
+
+.hero-button--outline {
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+}
+
+.hero-button--outline:hover {
+  background: rgb(255 255 255 / .18);
+}
+
+.hero-social {
+  list-style: none;
+}
+
+.hero-social__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / .14);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color .2s ease;
+}
+
+.hero-social__link:hover {
+  background: rgb(255 255 255 / .28);
+}
+
+/* -- About ----------------------------------------------------------------- */
+.about-photo {
+  margin-inline: 0;
+}
+
+.about-photo picture {
+  display: block;
+}
+
+.about-photo__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: .75rem;
+  object-fit: cover;
+}
+
+.about-photo__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .25rem .75rem;
+  margin-top: .75rem;
+  font-size: .875rem;
+  color: var(--color-text-secondary);
+}
+
+.about-photo__link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.about-photo__link:hover {
+  color: var(--color-second);
+}
+
+.dark .about-photo__link {
+  color: var(--color-first-light);
+}
+
+.dark .about-photo__link:hover {
+  color: #fff;
+}
+
+.quick-fact {
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--color-primary) 3%, var(--color-bg));
+}
+
+.dark .quick-fact {
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-bg));
+}
+
+/* Same width for every icon, so the titles line up whatever glyph the fact uses. */
+.quick-fact__icon {
+  flex: none;
+  width: 1.5rem;
+  text-align: center;
+}
+
+/* Links inside a fact (the employer): underlined, because the reset removes the underline and the colour alone is not enough. */
+.quick-fact a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.quick-fact a:hover {
+  color: var(--color-second);
+}
+
+.dark .quick-fact a {
+  color: var(--color-first-light);
+}
+
+.dark .quick-fact a:hover {
+  color: #fff;
+}
+
+/* "More" dialog: native <dialog>; Esc, focus return and the backdrop are the browser's. */
+.about-dialog {
+  width: min(64rem, calc(100% - 2rem));
+  max-height: min(85vh, 50rem);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / .5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.about-dialog::backdrop {
+  background: rgb(14 27 42 / .65);
+}
+
+.about-dialog__inner {
+  padding: 1.5rem;
+}
+
+@media (min-width: 40rem) {
+  .about-dialog__inner { padding: 2rem; }
+}
+
+.about-passion {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg));
+}
+
+.about-dialog__close {
+  flex: none;
+}
+
+html:has(dialog[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+/* No JavaScript (or no <dialog> support, see initDialogs): the longer text is shown in the page instead. */
+html.no-js .about-dialog,
+html.no-dialog .about-dialog {
+  display: block;
+  position: static;
+  width: auto;
+  max-height: none;
+  margin: 2rem 0 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+html.no-js [data-dialog-open],
+html.no-js [data-dialog-close],
+html.no-dialog [data-dialog-open],
+html.no-dialog [data-dialog-close],
+html.no-js .about-dialog__intro {
+  display: none;
+}
+
+/* -- Experience ------------------------------------------------------------ */
+.company-link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .2em;
+}
+
+.company-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* -- Selected projects ----------------------------------------------------- */
+.featured-card {
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.featured-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px var(--color-shadow-light);
+}
+
+.dark .featured-card:hover {
+  border-color: var(--color-first-light);
+}
+
+.featured-card__cover {
+  aspect-ratio: 8 / 5;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+.featured-card__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featured-card__cover--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-size: 2.5rem;
+}
+
+.dark .featured-card__cover--empty {
+  color: var(--color-first-light);
+}
+
+.featured-card__badge {
+  align-self: flex-start;
+  margin: 0 0 .75rem;
+  padding: .2rem .7rem;
+  border-radius: 9999px;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.featured-card__badge--case {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.featured-card__badge--personal {
+  background: var(--color-third);
+  color: #fff;
+}
+
+/* In dark mode --color-third is a light terracotta (#D9A27F): white text on it fails, navy passes. */
+.dark .featured-card__badge--personal {
+  color: #112030;
+}
+
+/* The title link stretches over the whole card, so the card is one big target with a short link name. */
+.featured-card__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.featured-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.featured-card:hover .featured-card__link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: .2em;
+}
+
+.dark .featured-card:hover .featured-card__link {
+  color: var(--color-first-light);
+}
+
+/* Where :has() works the card shows the focus ring; elsewhere the link keeps its own. */
+@supports selector(:has(a)) {
+  .featured-card__link:focus-visible {
+    outline: none;
+  }
+
+  .featured-card:has(.featured-card__link:focus-visible) {
+    outline: 3px solid var(--color-second);
+    outline-offset: 2px;
+  }
+
+  .dark .featured-card:has(.featured-card__link:focus-visible) {
+    outline-color: var(--color-first-light);
+  }
+}
+
+.featured-card__stack li {
+  padding: .15rem .65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  line-height: 1.6;
+}
+
+/* -- Tech stack ------------------------------------------------------------ */
+.tech-icon {
+  object-fit: contain;
+}
+
+/* -- Contact --------------------------------------------------------------- */
+.contact-bg,
+.contact-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.contact-bg {
+  z-index: 0;
+}
+
+.contact-bg picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.contact-bg__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contact-overlay {
+  z-index: 1;
+  background: var(--contact-overlay);
+}
+
+.contact-intro {
+  color: rgb(255 255 255 / .92);
+}
+
+.contact-panel {
+  max-width: 52rem;
+  border: 1px solid rgb(255 255 255 / .18);
+  background: rgb(14 27 42 / .55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.contact-list {
+  margin: 0;
+}
+
+.contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem 1rem;
+  min-height: 44px;
+  padding-block: .5rem;
+}
+
+.contact-row + .contact-row {
+  border-top: 1px solid rgb(255 255 255 / .14);
+}
+
+.contact-row dt {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 9rem;
+  color: rgb(255 255 255 / .85);
+  font-size: .875rem;
+  font-weight: 600;
+}
+
+.contact-row dt i {
+  width: 1.25rem;
+  text-align: center;
+  color: var(--color-first-light);
+}
+
+.contact-row dd {
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+
+.contact-row dd a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-first-light);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.contact-row dd a:hover {
+  color: #fff;
+}
+
+.contact-qr {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  margin: 0;
+}
+
+/* White in both themes: scanners need dark modules on a light background. */
+.contact-qr__tile {
+  padding: .75rem;
+  border-radius: 1rem;
+  background: #fff;
+  line-height: 0;
+}
+
+.contact-qr__img {
+  display: block;
+  width: 160px;
+  height: 160px;
+}
+
+.contact-qr figcaption {
+  max-width: 12rem;
+  color: rgb(255 255 255 / .88);
+  font-size: .875rem;
+  text-align: center;
+}
+
+/* Without JavaScript the address and number cannot be shown. The email row carries the sentence (once);
+   the phone row would be an empty label, and the footer line an icon alone, so both go. */
+html.no-js .contact-row--phone,
+html.no-js .site-footer__meta:has(> .js-contact) {
+  display: none;
+}

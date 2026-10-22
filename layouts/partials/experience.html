@@ -1,0 +1,171 @@
+{{- /*
+  Experience. Overrides the CareerCanvas experience.html (data: content/<lang>/experience.md; the shape
+  of `positions` is unchanged, including multi-role companies with `roles:`).
+  Differences from the theme: hugo.Sites / hugo.Data instead of the deprecated .Site.Languages /
+  .Site.Data; the resume block only appears when `resume_downloads` has an entry whose language has a
+  params.resume_url; headings run h2 (section) > h3 (company) > h4 (role) > h5 (role card), never
+  deeper; the company link is visible and says it opens in a new tab; timeline decoration is hidden from
+  screen readers; no Pexels-era data-animate attributes on the items.
+  Not supported on purpose: company logos (data/company_logos.yaml and static/images/companies/).
+  This site has none, and every image goes through partials/img.html (PLAN 7.1).
+  Periods are printed as written in the content; positions keep the order of the content file.
+*/ -}}
+{{- with site.GetPage "experience" -}}
+<section id="experience" class="py-12 bg-bg dark:bg-bg border-t border-border-primary" data-animate>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl font-bold text-center mb-4 font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h2>
+    <p class="text-lg text-center mb-12 text-text-secondary dark:text-text-tertiary italic">{{ .Params.intro }}</p>
+
+    {{- /* Resume buttons: language -> params.resume_url, then one button per resume_downloads entry that has a URL */ -}}
+    {{- $resumeMap := dict -}}
+    {{- range hugo.Sites -}}
+      {{- $lang := .Language.Lang -}}
+      {{- with .Params.resume_url -}}
+        {{- $resumeMap = merge $resumeMap (dict $lang .) -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $resumes := slice -}}
+    {{- range .Params.resume_downloads -}}
+      {{- $item := . -}}
+      {{- with index $resumeMap $item.lang -}}
+        {{- $resumes = $resumes | append (dict "url" . "label" $item.label) -}}
+      {{- end -}}
+    {{- end }}
+    {{- with $resumes }}
+    <div class="text-center mb-12">
+      <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center items-center">
+        {{- range . }}
+        <a href="{{ .url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center bg-gradient-primary text-white text-sm sm:text-lg px-4 sm:px-6 py-4 rounded-lg font-semibold shadow-lg w-auto button-hover">
+          <i class="fa-solid fa-file-pdf text-2xl mr-3" aria-hidden="true"></i>
+          {{ i18n "downloadResume" }} ({{ .label }})<span class="sr-only"> {{ i18n "opensInNewTab" }}</span>
+        </a>
+        {{- end }}
+      </div>
+    </div>
+    {{- end }}
+
+    <!-- Experience Timeline -->
+    <div class="relative pt-4">
+      <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 transform -translate-x-1/2 shadow-lg z-0 timeline-line" aria-hidden="true"></div>
+
+      <div class="space-y-8 md:space-y-16">
+        {{- range .Params.positions }}
+        {{- $exp := . }}
+        {{- $roles := or $exp.roles (slice) }}
+        {{- $hasRoles := gt (len $roles) 0 }}
+        {{- $primaryRole := $exp.role }}
+        {{- if $hasRoles }}{{ $primaryRole = (index $roles 0).title }}{{ end }}
+        <div class="relative timeline-item">
+          <div class="hidden md:block absolute left-1/2 top-2 w-4 h-4 rounded-full border-4 transform -translate-x-1/2 z-20 timeline-bullet shadow-lg" aria-hidden="true"></div>
+
+          <!-- Overall period badge: mobile, above the cards -->
+          <div class="md:hidden px-4 text-center mb-4">
+            <div class="inline-block bg-gradient-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+              <i class="fa-solid fa-calendar-days mr-2" aria-hidden="true"></i>{{ $exp.period }}
+            </div>
+          </div>
+
+          <div class="flex flex-col md:flex-row gap-8 justify-center">
+            <!-- Company card -->
+            <div class="md:w-1/2 px-4 flex justify-end">
+              <div class="max-w-sm w-full">
+                <div class="company-card bg-bg dark:bg-bg p-6 rounded-lg shadow-lg border border-border-primary dark:border-border-primary">
+                  <h3 class="text-xl font-heading font-bold text-text-primary dark:text-text-primary mb-2">
+                    {{- if $exp.company_url }}
+                    <a href="{{ $exp.company_url }}" target="_blank" rel="noopener noreferrer" class="company-link">{{ $exp.company }}<i class="fa-solid fa-arrow-up-right-from-square ml-2 text-sm" aria-hidden="true"></i><span class="sr-only"> {{ i18n "opensInNewTab" }}</span></a>
+                    {{- else }}
+                    {{ $exp.company }}
+                    {{- end }}
+                  </h3>
+                  {{- with $primaryRole }}
+                  <h4 class="text-primary dark:text-white font-semibold text-lg mb-3">{{ . }}</h4>
+                  {{- end }}
+
+                  <!-- Industry and location -->
+                  <div class="flex flex-wrap gap-2 mb-3">
+                    {{- if $exp.industry }}
+                    <span class="inline-flex items-center bg-third-darker text-white px-3 py-1 rounded-full text-xs font-medium">
+                      <i class="fa-solid fa-industry mr-1" aria-hidden="true"></i>{{ $exp.industry }}
+                    </span>
+                    {{- end }}
+                    {{- if $exp.location }}
+                    <span class="inline-flex items-center bg-primary text-white px-3 py-1 rounded-full text-xs font-medium">
+                      <i class="fa-solid fa-location-dot mr-1" aria-hidden="true"></i>{{ $exp.location }}
+                    </span>
+                    {{- end }}
+                    {{- if $exp.award }}
+                    <span class="inline-flex items-center bg-third-darker text-white px-3 py-1 rounded-full text-xs font-medium">
+                      <i class="fa-solid fa-trophy mr-1" aria-hidden="true"></i>{{ $exp.award }}
+                    </span>
+                    {{- end }}
+                  </div>
+
+                  {{- if $exp.company_description }}
+                  <p class="text-sm text-text-secondary dark:text-text-tertiary italic border-l-4 border-primary-light pl-3">{{ $exp.company_description }}</p>
+                  {{- end }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Highlights -->
+            <div class="md:w-1/2 px-4">
+              <!-- Overall period badge: desktop -->
+              <div class="hidden md:block bg-gradient-primary text-white px-4 py-2 rounded-full text-sm font-medium mb-3 shadow-lg w-fit">
+                <i class="fa-solid fa-calendar-days mr-2" aria-hidden="true"></i>{{ $exp.period }}
+              </div>
+
+              {{- if $hasRoles }}
+              <div class="space-y-4">
+                {{- range $roles }}
+                <div class="achievements-card bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-lg shadow-lg border border-border-primary dark:border-border-primary">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                    <div class="flex items-center">
+                      <i class="fa-solid fa-briefcase text-third dark:text-third-light mr-3 text-lg" aria-hidden="true"></i>
+                      <h5 class="text-lg font-semibold text-text-primary dark:text-text-primary">{{ .title }}</h5>
+                    </div>
+                    {{- with .period }}
+                    <div class="inline-flex items-center bg-gradient-primary text-white px-3 py-1 rounded-full text-xs font-medium shadow w-fit">
+                      <i class="fa-solid fa-calendar-days mr-2" aria-hidden="true"></i>{{ . }}
+                    </div>
+                    {{- end }}
+                  </div>
+                  <p class="flex items-center mb-3 text-base font-semibold text-text-primary dark:text-text-primary">
+                    <i class="fa-solid fa-list-check text-third dark:text-third-light mr-3 text-base" aria-hidden="true"></i>
+                    {{ i18n "keyAchievements" }}
+                  </p>
+                  <ul class="space-y-3 text-text-secondary dark:text-text-secondary" role="list">
+                    {{- range .bullet_points }}
+                    <li class="flex items-start">
+                      <i class="fa-solid fa-circle-check text-second mr-3 mt-1 flex-shrink-0" aria-hidden="true"></i>
+                      <span>{{ . | markdownify }}</span>
+                    </li>
+                    {{- end }}
+                  </ul>
+                </div>
+                {{- end }}
+              </div>
+              {{- else }}
+              <div class="achievements-card bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-lg shadow-lg border border-border-primary dark:border-border-primary">
+                <div class="flex items-center mb-4">
+                  <i class="fa-solid fa-list-check text-third dark:text-third-light mr-3 text-lg" aria-hidden="true"></i>
+                  <h5 class="text-lg font-semibold text-text-primary dark:text-text-primary">{{ i18n "keyAchievements" }}</h5>
+                </div>
+                <ul class="space-y-3 text-text-secondary dark:text-text-secondary" role="list">
+                  {{- range $exp.bullet_points }}
+                  <li class="flex items-start">
+                    <i class="fa-solid fa-circle-check text-second mr-3 mt-1 flex-shrink-0" aria-hidden="true"></i>
+                    <span>{{ . | markdownify }}</span>
+                  </li>
+                  {{- end }}
+                </ul>
+              </div>
+              {{- end }}
+            </div>
+          </div>
+        </div>
+        {{- end }}
+      </div>
+    </div>
+  </div>
+</section>
+{{- end -}}

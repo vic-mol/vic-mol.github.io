@@ -1,0 +1,53 @@
+{{- /*
+  Tech stack. Overrides the CareerCanvas technical.html (data: content/<lang>/technical.md).
+  Differences from the theme: the icon <img> src is known at build time (the SVG is vendored in
+  assets/icons/devicon/<devicon_name>-<devicon_style>.svg, style default "original"), so there is no
+  CDN and no JavaScript; the icons are decorative (alt="" + aria-hidden) because the skill name is shown
+  as text; every group is a list; the Font Awesome fallback uses the right prefix (fa-brands for brand
+  icons, fa-solid for the rest) and one colour instead of a random one.
+  Icons that vanish on a dark background are inverted there on the theme's translucent tile (theme list
+  below; a skill can also set `invert_on_dark: true`); every other colour icon sits on a near-white tile
+  in dark mode, because devicons are drawn for light backgrounds (Oracle red, AWS navy and MySQL blue are
+  unreadable on the translucent one). A devicon_name without a vendored file falls back to the Font Awesome icon and
+  logs a warning (T3: `npm run vendor` copies every devicon the content names).
+*/ -}}
+{{- with site.GetPage "technical" -}}
+<section id="technical" class="py-12 bg-bg dark:bg-bg border-t border-border-primary" data-animate>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl font-bold text-center mb-4 font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h2>
+    <p class="text-lg text-center mb-12 text-text-secondary dark:text-text-tertiary italic">{{ .Params.intro }}</p>
+
+    {{- $invertOnDark := slice "nextjs" "github" "ollama" "keras" "prisma" }}
+    {{- $brandIcons := slice "python" "react" "docker" "github" "linux" "aws" "java" "js" "node-js" }}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {{- range .Params.technical_groups }}
+      <div class="bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-lg shadow-lg border border-border-primary dark:border-border-primary tech-skill-card">
+        <h3 class="mb-4 text-center text-xl font-heading font-semibold text-text-primary dark:text-text-primary">{{ .title }}</h3>
+        <ul class="flex flex-wrap gap-8 justify-center p-0 m-0" role="list">
+          {{- range .skills }}
+          {{- $skill := . }}
+          {{- $svg := false }}
+          {{- $invert := or $skill.invert_on_dark (in $invertOnDark ($skill.devicon_name | default "")) }}
+          {{- with $skill.devicon_name }}
+            {{- $path := printf "icons/devicon/%s-%s.svg" . ($skill.devicon_style | default "original") }}
+            {{- $svg = resources.Get $path }}
+            {{- if not $svg }}{{ warnf "technical.html: %q (%s) has devicon_name %q but assets/%s does not exist; using the Font Awesome icon" $skill.name site.Language.Lang . $path }}{{ end }}
+          {{- end }}
+          <li class="flex flex-col items-center text-center">
+            <div class="tech-icon-box h-16 w-16 mb-1 flex items-center justify-center rounded-md box-border dark:ring-1 dark:ring-white/25 {{ if and $svg (not $invert) }}dark:bg-white/90{{ else }}dark:bg-white/25{{ end }}">
+              {{- if $svg }}
+              <img src="{{ $svg.RelPermalink }}" alt="" aria-hidden="true" width="48" height="48" loading="lazy" decoding="async" class="tech-icon w-12 h-12{{ if $invert }} dark:invert dark:brightness-200{{ end }}">
+              {{- else }}
+              <i class="{{ if in $brandIcons ($skill.icon | default "") }}fa-brands{{ else }}fa-solid{{ end }} fa-{{ $skill.icon }} tech-fallback-icon text-4xl text-primary dark:text-white" aria-hidden="true"></i>
+              {{- end }}
+            </div>
+            <span class="text-sm md:text-base font-semibold text-text-secondary dark:text-text-secondary">{{ $skill.name }}</span>
+          </li>
+          {{- end }}
+        </ul>
+      </div>
+      {{- end }}
+    </div>
+  </div>
+</section>
+{{- end -}}

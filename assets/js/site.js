@@ -152,3 +152,30 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initLangSwitch);
   else initLangSwitch();
 })();
+
+/* == T7 == */
+/* About dialog (partials/about.html): [data-dialog-open="<id>"] opens that <dialog> as a modal. Esc and the
+   return of focus to the button are native; [data-dialog-close] and a click on the backdrop close it.
+   Without <dialog> support the page gets html.no-dialog and the text is shown inline (site.css). */
+(function () {
+  'use strict';
+
+  function initDialogs() {
+    document.querySelectorAll('[data-dialog-open]').forEach(function (btn) {
+      var d = document.getElementById(btn.getAttribute('data-dialog-open'));
+      if (!d || btn.dataset.dialogBound) return;
+      if (!d.showModal) { document.documentElement.classList.add('no-dialog'); return; }
+      btn.dataset.dialogBound = '1';
+      btn.addEventListener('click', function () { d.showModal(); });
+      d.addEventListener('click', function (e) {
+        if (e.target === d || e.target.closest('[data-dialog-close]')) d.close();
+      });
+    });
+  }
+
+  window.Site = window.Site || {};
+  window.Site.initDialogs = initDialogs;
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initDialogs);
+  else initDialogs();
+})();
