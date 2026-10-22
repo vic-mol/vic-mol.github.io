@@ -1,0 +1,13 @@
+{{- /*
+  gallery: overrides the CareerCanvas shortcode of the same name, which lists a folder under static/,
+  does no image processing and uses file names as alt text (PLAN 6.3).
+
+  Here it simply delegates to photo-gallery, so alt text, captions, sizes and WebP all come from
+  data/images.yaml and img.html:   {{< gallery set="sf-2026" >}}
+  The old `dir` parameter is not supported.
+*/ -}}
+{{- $set := cond .IsNamedParams (.Get "set") (.Get 0) -}}
+{{- if not $set }}{{ errorf "gallery: this site's gallery shortcode takes set=\"...\" (a set name from data/images.yaml); the CareerCanvas 'dir' parameter, which read static/, is not supported (%s)" .Position }}
+{{- else -}}
+{{- template "_shortcodes/photo-gallery.html" . -}}
+{{- end -}}

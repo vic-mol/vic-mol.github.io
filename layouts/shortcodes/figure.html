@@ -1,0 +1,58 @@
+{{- /*
+  figure: a single processed image for posts (PLAN 6.3). Shadows Hugo's built-in `figure` on purpose:
+  the built-in prints an unprocessed <img> straight from a URL.
+
+    {{< figure src="images/posts/<slug>/x.jpg" >}}
+    {{< figure src="images/posts/<slug>/x.jpg" ratio="4:3" anchor="Smart" caption-key="someI18nKey" >}}
+
+  src          required: path under assets/ (raster or .svg), exactly the key used in data/images.yaml
+  ratio        optional: crop to this ratio, e.g. "4:3" or "16:9" (via img.html / .Fill)
+  anchor       optional: crop anchor, default "Smart"
+  widths       optional: space-separated pixel widths, default "480 800 1200"
+  sizes        optional: sizes attribute, default "(min-width: 768px) 720px, 100vw"
+  class        optional: extra classes on the <img>
+  alt          optional: overrides the alt text of data/images.yaml
+  decorative   optional: "true" for an image that adds nothing (alt="" and aria-hidden)
+  loading      optional: "lazy" (default) or "eager"
+
+  Alt text comes from data/images.yaml (key = src) in the page's language; the build fails if it is
+  missing (img.html). The caption, when there is one, is looked up in this order:
+    1. caption-key="someKey": the translation of that i18n key in the page's language;
+    2. caption="...": literal text (a post is written in one language, so this is fine in a post);
+    3. the `caption` of the image's entry in data/images.yaml for the page's language.
+*/ -}}
+{{- $src := .Get "src" -}}
+{{- if not $src }}{{ errorf "figure: the 'src' parameter is required, e.g. src=\"images/posts/<slug>/x.jpg\" (%s)" .Position }}
+{{- else -}}
+{{- $page := .Page -}}
+{{- $lang := $page.Language.Lang -}}
+
+{{- $args := dict "page" $page "src" $src "sizes" (.Get "sizes" | default "(min-width: 768px) 720px, 100vw") "class" (printf "block w-full h-auto rounded-lg %s" (.Get "class" | default "") | strings.TrimSpace) -}}
+{{- with .Get "ratio" }}{{ $args = merge $args (dict "ratio" .) }}{{ end -}}
+{{- with .Get "anchor" }}{{ $args = merge $args (dict "anchor" .) }}{{ end -}}
+{{- with .Get "alt" }}{{ $args = merge $args (dict "alt" .) }}{{ end -}}
+{{- with .Get "loading" }}{{ $args = merge $args (dict "loading" .) }}{{ end -}}
+{{- with .Get "widths" }}{{ $args = merge $args (dict "widths" (apply (split (string .) " ") "int" ".")) }}{{ end -}}
+{{- with .Get "decorative" }}{{ $args = merge $args (dict "decorative" (eq (printf "%v" .) "true")) }}{{ end -}}
+
+{{- $caption := "" -}}
+{{- with .Get "caption-key" -}}
+  {{- $caption = i18n . -}}
+  {{- if eq $caption "" }}{{ errorf "figure: caption-key %q has no translation in language %q (add it to i18n/%s.toml) (%s)" . $lang $lang $.Position }}{{ end -}}
+{{- else -}}
+  {{- with $.Get "caption" -}}
+    {{- $caption = . -}}
+  {{- else -}}
+    {{- with index (hugo.Data.images | default dict) $src -}}
+      {{- with .caption }}{{ $caption = index . $lang | default "" }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+<figure class="not-prose my-8">
+  {{- partial "img.html" $args -}}
+  {{- with $caption }}
+  <figcaption class="mt-2 text-sm text-text-muted">{{ . }}</figcaption>
+  {{- end }}
+</figure>
+{{- end -}}

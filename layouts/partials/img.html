@@ -1,0 +1,173 @@
+{{- /*
+  img.html: the only way templates output images (PLAN 7.3).
+
+  Call:
+    {{ partial "img.html" (dict
+      "page"          .                  required: the page being rendered (its language picks the alt text)
+      "src"           "images/x/y.jpg"   required: path under assets/ (raster, or .svg)
+      "widths"        (slice 480 800 1200)   optional: rendered widths in px
+      "sizes"         "100vw"            optional: the sizes attribute
+      "ratio"         "4:3"              optional: crop to this width:height ratio with .Fill
+      "anchor"        "Smart"            optional: crop anchor (Smart, Center, Top, Bottom, Left, Right, ...)
+      "loading"       "lazy"             optional: "lazy" (default) or "eager"
+      "fetchpriority" "high"             optional: "high", "low" or "auto" (default: attribute omitted)
+      "class"         "..."              optional: class of the <img>
+      "alt"           "..."              optional: overrides the alt text from data/images.yaml
+      "decorative"    true               optional: overrides the "decorative" flag from data/images.yaml
+      "preload"       true               optional: output <link rel="preload" as="image"> for the same
+                                         variants instead of the <picture> (see "Hero preload" below)
+    ) }}
+
+  Output (raster):
+    <picture>
+      <source type="image/webp" srcset="WEBP-1 Nw, WEBP-2 Nw, ..." sizes="...">
+      <img src="JPEG at the middle width" srcset="JPEG-1 Nw, ..." sizes="..." width height alt
+           [aria-hidden="true"] [class] loading [fetchpriority] decoding="async">
+    </picture>
+  width/height are the rendered size of the middle variant, so the browser reserves the space and
+  nothing shifts. "Middle" = element number floor(n / 2) (0-based) of the n usable widths in ascending
+  order: 3 widths -> the 2nd, 2 widths -> the 2nd, 4 widths -> the 3rd, 1 width -> that one.
+  <source> repeats `sizes` because a w-descriptor srcset is resolved against it.
+  Output (.svg): no processing, a plain <img src width height ...>; width and height come from the
+  viewBox of the root <svg> (or from its width/height attributes when there is no viewBox).
+
+  Build failures (errorf): the src does not exist under assets/; a bad ratio/loading/fetchpriority value;
+  an image that is not decorative has no alt text in the page's language, in data/images.yaml or `alt`
+  (the message names the key and the language). Widths larger than the master (and, with a ratio,
+  crops taller than the master) are skipped, never upscaled; if none is left, one variant at the
+  largest size the master allows is produced.
+
+  Decorative images (`decorative: true` in data/images.yaml, or "decorative" true in the call) get
+  alt="" AND aria-hidden="true", and need no alt text. Decorative wins over any `alt` param.
+
+  ---- Operation strings (the contract that partials/hero-preload.html in T7 relies on) ----
+  Hugo names a processed file after its exact operation string, so asking for the SAME string anywhere
+  else reuses the same file. Quality is not part of the string: it comes from [imaging.jpeg] and
+  [imaging.webp] in hugo.toml. For each usable width W (H = round(W * ratioH / ratioW)):
+    no ratio:   $res.Resize "<W>x webp"            $res.Resize "<W>x jpg"
+    ratio:      $res.Fill   "<W>x<H> <Anchor> webp"   $res.Fill "<W>x<H> <Anchor> jpg"
+    with <Anchor> = the `anchor` param, default "Smart" (written out, never left implicit).
+  Examples: Resize "1024x webp"; Fill "400x300 Smart webp"; Fill "400x300 Bottom jpg".
+  Usable widths: the `widths` param (default 480 800 1200), sorted, de-duplicated, and kept only when
+  W <= master width (and H <= master height with a ratio).
+
+  Hero preload: partial "img.html" (dict "page" . "src" ... "widths" ... "sizes" ... "fetchpriority" "high"
+  "preload" true) prints <link rel="preload" as="image" type="image/webp" href imagesrcset imagesizes>
+  for exactly the WebP variants the <picture> would list, so the two can never drift apart.
+  (A preload does not need alt text, so none is looked up. imagesrcset is written through safeHTMLAttr
+  because html/template treats every attribute whose name contains "src" as a URL and would
+  percent-encode the spaces and commas of a srcset in it; the plain `srcset` attribute is understood.)
+*/ -}}
+{{- $p := . -}}
+{{- $page := $p.page -}}
+{{- $src := $p.src -}}
+{{- $res := false -}}
+{{- if not $page }}{{ errorf "img.html: the 'page' parameter is required (pass the current page, e.g. \"page\" .)" }}
+{{- else if not $src }}{{ errorf "img.html: the 'src' parameter is required (a path under assets/, e.g. \"images/gallery/x.jpg\"); called from %q" $page.Path }}
+{{- else }}
+  {{- $res = resources.Get $src -}}
+  {{- if not $res }}{{ errorf "img.html: image %q not found under assets/ (called from %q)" $src $page.Path }}{{ end -}}
+{{- end -}}
+{{- /* errorf only logs: the build fails at the end, so everything below runs only when there is something to render */ -}}
+{{- if $res -}}
+{{- $lang := $page.Language.Lang -}}
+
+{{- /* ---- options ---- */ -}}
+{{- $loading := $p.loading | default "lazy" -}}
+{{- if not (in (slice "lazy" "eager") $loading) }}{{ errorf "img.html: loading must be \"lazy\" or \"eager\", got %q (image %q)" $loading $src }}{{ end -}}
+{{- $fetchpriority := $p.fetchpriority | default "" -}}
+{{- if not (in (slice "" "auto" "high" "low") $fetchpriority) }}{{ errorf "img.html: fetchpriority must be \"high\", \"low\" or \"auto\", got %q (image %q)" $fetchpriority $src }}{{ end -}}
+{{- $sizes := $p.sizes | default "100vw" -}}
+{{- $anchor := $p.anchor | default "Smart" -}}
+{{- $isSVG := eq (lower (path.Ext $src)) ".svg" -}}
+{{- $preload := $p.preload | default false -}}
+
+{{- /* ---- alt text and the decorative flag (data/images.yaml is keyed by the src) ---- */ -}}
+{{- $images := hugo.Data.images | default dict -}}
+{{- $entry := index $images $src -}}
+{{- $decorative := false -}}
+{{- with $entry }}{{ $decorative = .decorative | default false }}{{ end -}}
+{{- if isset $p "decorative" }}{{ $decorative = $p.decorative }}{{ end -}}
+{{- $alt := "" -}}
+{{- if and (not $decorative) (not $preload) -}}
+  {{- with $entry }}{{ with .alt }}{{ $alt = index . $lang | default "" }}{{ end }}{{ end -}}
+  {{- with $p.alt }}{{ $alt = . }}{{ end -}}
+  {{- if eq $alt "" }}{{ errorf "img.html: no alt text for image %q in language %q. Add alt.%s for that key to data/images.yaml, pass alt=\"...\", or mark the image decorative (decorative: true). Called from %q" $src $lang $lang $page.Path }}{{ end -}}
+{{- end -}}
+
+{{- if $isSVG -}}
+  {{- /* ---- SVG: no processing; size from the viewBox ---- */ -}}
+  {{- $svg := string $res.Content -}}
+  {{- $tag := index (findRE `(?is)<svg\b[^>]*>` $svg 1) 0 | default "" -}}
+  {{- $w := "" -}}{{- $h := "" -}}
+  {{- with findRESubmatch `(?i)\bviewBox\s*=\s*["']\s*-?[\d.]+[\s,]+-?[\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)\s*["']` $tag 1 -}}
+    {{- $w = index (index . 0) 1 -}}{{- $h = index (index . 0) 2 -}}
+  {{- else -}}
+    {{- with findRESubmatch `(?i)\swidth\s*=\s*["']\s*([\d.]+)\s*(?:px)?\s*["']` $tag 1 }}{{ $w = index (index . 0) 1 }}{{ end -}}
+    {{- with findRESubmatch `(?i)\sheight\s*=\s*["']\s*([\d.]+)\s*(?:px)?\s*["']` $tag 1 }}{{ $h = index (index . 0) 1 }}{{ end -}}
+  {{- end -}}
+  {{- if or (eq $w "") (eq $h "") }}{{ errorf "img.html: the SVG %q has neither a viewBox nor width and height attributes on its root element" $src }}{{ end -}}
+  {{- $w = printf "%v" (float $w) -}}{{- $h = printf "%v" (float $h) -}}
+  {{- if $preload -}}
+<link rel="preload" as="image" href="{{ $res.RelPermalink }}"{{ with $fetchpriority }}{{ if ne . "auto" }} fetchpriority="{{ . }}"{{ end }}{{ end }}>
+  {{- else -}}
+<img src="{{ $res.RelPermalink }}" width="{{ $w }}" height="{{ $h }}" alt="{{ $alt }}"{{ if $decorative }} aria-hidden="true"{{ end }}{{ with $p.class }} class="{{ . }}"{{ end }} loading="{{ $loading }}"{{ with $fetchpriority }}{{ if ne . "auto" }} fetchpriority="{{ . }}"{{ end }}{{ end }} decoding="async">
+  {{- end -}}
+{{- else -}}
+  {{- /* ---- raster: crop ratio ---- */ -}}
+  {{- $ratioW := 0 -}}{{- $ratioH := 0 -}}
+  {{- with $p.ratio -}}
+    {{- if not (findRE `^[1-9][0-9]*:[1-9][0-9]*$` (string .)) }}{{ errorf "img.html: ratio must look like \"4:3\" (positive whole numbers), got %q (image %q)" . $src }}
+    {{- else -}}
+      {{- $parts := split (string .) ":" -}}
+      {{- $ratioW = int (index $parts 0) -}}{{- $ratioH = int (index $parts 1) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- /* ---- usable widths: never larger than the master, never an upscaled crop ---- */ -}}
+  {{- $widths := $p.widths | default (slice 480 800 1200) | uniq | sort -}}
+  {{- $variants := slice -}}
+  {{- range $widths -}}
+    {{- $w := int . -}}
+    {{- $h := 0 -}}
+    {{- if $ratioW }}{{ $h = int (math.Round (div (mul (float $w) $ratioH) $ratioW)) }}{{ end -}}
+    {{- if and (le $w $res.Width) (or (eq $h 0) (le $h $res.Height)) -}}
+      {{- $variants = $variants | append (dict "w" $w "h" $h) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if not $variants -}}
+    {{- /* every requested width is larger than the master: one variant at the largest size it allows */ -}}
+    {{- $w := $res.Width -}}
+    {{- $h := 0 -}}
+    {{- if $ratioW -}}
+      {{- if gt (mul $res.Width $ratioH) (mul $res.Height $ratioW) }}{{ $w = div (mul $res.Height $ratioW) $ratioH }}{{ end -}}
+      {{- $h = int (math.Round (div (mul (float $w) $ratioH) $ratioW)) -}}
+    {{- end -}}
+    {{- $variants = slice (dict "w" $w "h" $h) -}}
+  {{- end -}}
+
+  {{- /* ---- process: the operation strings are documented in the header ---- */ -}}
+  {{- $webpSet := slice -}}{{- $jpgSet := slice -}}{{- $jpgs := slice -}}
+  {{- range $variants -}}
+    {{- $spec := printf "%dx" .w -}}
+    {{- if gt .h 0 }}{{ $spec = printf "%dx%d %s" .w .h $anchor }}{{ end -}}
+    {{- $webp := "" -}}{{- $jpg := "" -}}
+    {{- if gt .h 0 -}}
+      {{- $webp = $res.Fill (printf "%s webp" $spec) -}}
+      {{- $jpg = $res.Fill (printf "%s jpg" $spec) -}}
+    {{- else -}}
+      {{- $webp = $res.Resize (printf "%s webp" $spec) -}}
+      {{- $jpg = $res.Resize (printf "%s jpg" $spec) -}}
+    {{- end -}}
+    {{- $webpSet = $webpSet | append (printf "%s %dw" $webp.RelPermalink $webp.Width) -}}
+    {{- $jpgSet = $jpgSet | append (printf "%s %dw" $jpg.RelPermalink $jpg.Width) -}}
+    {{- $jpgs = $jpgs | append (dict "webp" $webp "jpg" $jpg) -}}
+  {{- end -}}
+  {{- $mid := index $jpgs (div (len $jpgs) 2) -}}
+  {{- if $preload -}}
+<link rel="preload" as="image" type="image/webp" href="{{ $mid.webp.RelPermalink }}" {{ printf `imagesrcset="%s"` (delimit $webpSet ", " | htmlEscape) | safeHTMLAttr }} imagesizes="{{ $sizes }}"{{ with $fetchpriority }}{{ if ne . "auto" }} fetchpriority="{{ . }}"{{ end }}{{ end }}>
+  {{- else -}}
+<picture><source type="image/webp" srcset="{{ delimit $webpSet ", " }}" sizes="{{ $sizes }}"><img src="{{ $mid.jpg.RelPermalink }}" srcset="{{ delimit $jpgSet ", " }}" sizes="{{ $sizes }}" width="{{ $mid.jpg.Width }}" height="{{ $mid.jpg.Height }}" alt="{{ $alt }}"{{ if $decorative }} aria-hidden="true"{{ end }}{{ with $p.class }} class="{{ . }}"{{ end }} loading="{{ $loading }}"{{ with $fetchpriority }}{{ if ne . "auto" }} fetchpriority="{{ . }}"{{ end }}{{ end }} decoding="async"></picture>
+  {{- end -}}
+{{- end -}}
+{{- end -}}
