@@ -1,0 +1,55 @@
+name: Quality (PRs)
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 13 * * 1"   # Mondays: also catches external links that rotted
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash   # adds -eo pipefail, so a failing hugo inside a pipe fails the step
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.168.0
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install Hugo (extended)
+        run: |
+          mkdir -p "${HOME}/.local/hugo"
+          curl -sSL "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz" \
+            | tar -xz -C "${HOME}/.local/hugo" hugo
+          echo "${HOME}/.local/hugo" >> "${GITHUB_PATH}"
+      - run: npm ci
+      - name: Build (production, local baseURL so tools can crawl it)
+        run: hugo build --gc --minify --baseURL "http://localhost:8080/" --logLevel warn --printI18nWarnings 2>&1 | tee build.log
+      - name: Fail on Hugo warnings (deprecations, missing i18n, etc.)
+        run: "! grep -E 'WARN|ERROR' build.log"
+      - run: node scripts/check-site.mjs public --base http://localhost:8080/
+      - name: Link check (internal; external only on the weekly schedule)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress --root-dir "${{ github.workspace }}/public"
+            ${{ github.event_name != 'schedule' && '--offline' || '--max-retries 2 --exclude linkedin.com' }}
+            "public/**/*.html"
+          fail: true
+      - name: Serve public/
+        run: npx --yes http-server@14.1.1 public -p 8080 -s &
+      - name: Accessibility (axe via pa11y-ci, every URL in both sitemaps)
+        run: npx --yes pa11y-ci@5.0.0 --config .pa11yci.json
+      - name: Lighthouse CI
+        run: npx --yes @lhci/cli@0.15.1 autorun --config=./lighthouserc.json
