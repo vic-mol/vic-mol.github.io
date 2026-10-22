@@ -116,6 +116,54 @@ section[data-animate] {
   html.js section[data-animate]:not(.fade-in-visible) {
     opacity: 1 !important;
   }
+
+  /* Header prints once, at the top, without the screen-only controls. */
+  .site-header {
+    position: static !important;
+    box-shadow: none !important;
+  }
+
+  .site-header + .h-16,
+  #menu-btn,
+  #theme-toggle,
+  #mobile-menu {
+    display: none !important;
+  }
+
+  /* Browsers drop background images and colours by default, which would leave the white text of the
+     photo sections (hero, contact, 404) on white paper: print them as dark text on white instead. */
+  .hero-bg,
+  .hero-overlay,
+  .contact-bg,
+  .contact-overlay,
+  .error-hero__bg {
+    display: none !important;
+  }
+
+  .on-dark {
+    min-height: 0 !important;
+    background: none !important;
+  }
+
+  .on-dark,
+  .on-dark * {
+    color: #000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  .on-dark *:not(img):not(svg):not(picture) {
+    background: transparent !important;
+    border-color: #999 !important;
+  }
+
+  /* Same for white-on-gradient buttons and pills elsewhere ("Connect on LinkedIn", "More", timeline dates). */
+  .text-white,
+  .bg-gradient-primary {
+    color: #000 !important;
+    background: none !important;
+    border: 1px solid #999 !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -394,6 +442,7 @@ a.page-link:hover {
 
 /* Post typography: Tailwind "prose" mapped onto the site tokens (light and dark share the same variables) */
 .post-prose {
+  overflow-wrap: anywhere;     /* long URLs, paths and identifiers break instead of widening the page */
   --tw-prose-body: var(--color-text-primary);
   --tw-prose-headings: var(--color-text-primary);
   --tw-prose-lead: var(--color-text-secondary);
@@ -512,12 +561,12 @@ a.page-link:hover {
 .site-brand {
   display: inline-flex;
   align-items: center;
+  min-width: 0;                /* with a very large browser font the name wraps instead of pushing the buttons off-screen */
   min-height: 44px;
   font-size: 1.125rem;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -.01em;
-  white-space: nowrap;
   text-decoration: none;
   color: var(--color-text-primary);
 }
@@ -766,6 +815,12 @@ html.no-js #menu-btn { display: none; }
   color: var(--color-text-primary);
   text-decoration: underline;
   text-underline-offset: .2em;
+  overflow-wrap: anywhere;     /* the email address is one long word */
+}
+
+/* Card headings ("Communication & pre-sales") break inside a long word rather than overflowing a narrow card. */
+main h3 {
+  overflow-wrap: anywhere;
 }
 
 .site-footer__link:hover { color: var(--color-third); }
@@ -1217,6 +1272,14 @@ html.no-js #menu-btn { display: none; }
   .hero-section .hero-overlay {
     background: var(--hero-overlay), linear-gradient(90deg, transparent 34%, rgb(14 27 42 / .26) 47%);
   }
+}
+
+/* The ring is 18-24rem wide (theme classes); with a large browser font that is wider than a phone.
+   Cap it at the column width and keep it round. */
+.hero-profile-ring {
+  max-width: min(100%, calc(100vw - 3rem));
+  height: auto;
+  aspect-ratio: 1 / 1;
 }
 
 .hero-profile-ring picture {
