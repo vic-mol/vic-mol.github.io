@@ -15,7 +15,66 @@ Victor Molina's bilingual (English / Spanish) portfolio. It is a [Hugo](https://
 | Git | any recent | The theme is a submodule. |
 | Python 3 + Pillow | optional | Only for `scripts/prepare_images.py` (adding photos). `python -m pip install pillow` |
 
+Windows installs Hugo in step 1 of "Get started" below (one `winget` command); nothing else needs to be installed to see the site.
+
 ## Get started
+
+### Windows (PowerShell), step by step
+
+1. **Install Hugo Extended 0.168.0** (one time). Without it `npm run dev` stops with `'hugo' is not recognized as an internal or external command`.
+
+   ```powershell
+   winget install --id Hugo.Hugo.Extended --exact --version 0.168.0
+   ```
+
+   Close PowerShell and open a **new** window (the old one does not see the new program), then check:
+
+   ```powershell
+   hugo version
+   ```
+
+   It must print `v0.168.0` and `+extended`.
+
+2. **Get the code** (skip this if you already have the folder). The theme is a Git submodule, so clone with `--recurse-submodules`:
+
+   ```powershell
+   git clone --recurse-submodules https://github.com/vic-mol/vic-mol.github.io.git
+   cd vic-mol.github.io
+   ```
+
+   If the folder was cloned without it and `themes\careercanvas` is empty, run `git submodule update --init`.
+
+3. **Install the packages** (one time):
+
+   ```powershell
+   npm ci
+   ```
+
+   Two kinds of messages are harmless: `tarball ... seems to be corrupted. Trying again` (npm retries by itself) and `N vulnerabilities` (they are in build-time tools that only read this repository's own files; nothing from them ships to the site). Do **not** run `npm audit fix --force`: it upgrades Tailwind to v4 and breaks the site.
+
+4. **Start the site.** From the repository folder, paste this whole block. It puts Hugo on this window's `PATH` (in case the new window still does not see it) and starts `npm run dev` from a path with a lowercase drive letter, which avoids a Windows-only error from Hugo's PostCSS step (see "Windows" below):
+
+   ```powershell
+   $hugoDir = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Directory -Filter 'Hugo.Hugo.Extended_*' | Select-Object -First 1 -ExpandProperty FullName
+   if (-not $hugoDir) { throw "Hugo Extended is not installed. Install it with: winget install --id Hugo.Hugo.Extended --exact --version 0.168.0" }
+   $env:Path = "$hugoDir;$env:Path"
+   $repo = (Get-Location).Path
+   $repo = $repo.Substring(0, 1).ToLowerInvariant() + $repo.Substring(1)
+   & $env:ComSpec /d /c "cd /d `"$repo`" && npm run dev"
+   ```
+
+   The first start takes a few seconds (Hugo processes the images). When it prints `Web Server is available at http://localhost:1313/`, open it in the browser.
+
+5. **Look at it**: English at <http://localhost:1313/>, Spanish at <http://localhost:1313/es/>. Edits to files in `content/`, `layouts/`, `assets/` and `data/` reload the page by themselves. Press **Ctrl+C** in the terminal to stop the server.
+
+Useful variations of the last line of the block (it is the part inside the quotes after `&&`):
+
+| Want | Use |
+|---|---|
+| Also show draft posts (the two test posts under `content/*/posts/`) | `npm run dev -- -D` |
+| Another port, because 1313 is taken (`bind: Only one usage of each socket address`) | `npm run dev -- --port 1314` |
+
+### macOS and Linux
 
 ```sh
 git clone --recurse-submodules https://github.com/vic-mol/vic-mol.github.io.git
@@ -24,13 +83,17 @@ npm ci
 npm run dev
 ```
 
-`npm run dev` starts Hugo's development server (`hugo server --disableFastRender`) on <http://localhost:1313/>. Add `-D` to also render drafts: `npm run dev -- -D`.
+`npm run dev` starts Hugo's development server (`hugo server --disableFastRender`) on <http://localhost:1313/>. Add `-D` to also render drafts: `npm run dev -- -D`. If the `themes/careercanvas` folder is empty, run `git submodule update --init`.
 
-If you cloned without `--recurse-submodules`, the `themes/careercanvas` folder is empty. Fix it with:
+### If something goes wrong
 
-```sh
-git submodule update --init
-```
+| What you see | What to do |
+|---|---|
+| `'hugo' is not recognized ...` | Do step 1, then open a new PowerShell window, or use the block in step 4, which adds Hugo to `PATH` for that window. |
+| `ERR_ACCESS_DENIED ... tailwind.config.js` | You ran `npm run dev` directly on Windows. Use the block in step 4 (explained in "Windows" below). |
+| Hugo asks for the "extended" version, or reports a missing PostCSS/`resources.PostCSS` | `hugo version` must say `+extended` and `v0.168.0`; reinstall with the `winget` command in step 1. |
+| `Error: ... themes/careercanvas ...` or an empty theme folder | `git submodule update --init` |
+| The page shows but without styling or images | Stop the server (Ctrl+C), delete the `resources` and `public` folders if present, start again. |
 
 | Command | What it does |
 |---|---|
