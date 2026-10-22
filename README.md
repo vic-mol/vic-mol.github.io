@@ -255,7 +255,7 @@ Two workflows in `.github/workflows/`. Both install Hugo extended 0.168.0 and No
 2. Site checker with `--base http://localhost:8080/`.
 3. Link check with lychee. On pull requests it checks internal links only; the weekly run also checks external links (linkedin.com is excluded because it blocks bots).
 4. Serves `public/` on port 8080 and runs **pa11y-ci** (`.pa11yci.json`, axe runner, WCAG2AA): nine URLs, each at 390x844 and 1280x800, in light and in dark mode (the dark runs click `#theme-toggle`).
-5. Runs **Lighthouse CI** (`lighthouserc.json`): the same nine URLs, mobile, three runs each, judged on the median. Thresholds: performance 0.90, accessibility 0.98, best practices 0.95, SEO 1.0, CLS 0.05, LCP 2500 ms, TBT 150 ms. Reports are uploaded to Lighthouse's temporary public storage.
+5. Runs **Lighthouse CI** (`lighthouserc.json`): the same nine URLs, mobile, three runs each, judged on the median. Thresholds: performance 0.90, accessibility 0.98, best practices 0.95, SEO 1.0, CLS 0.05, LCP 2500 ms, TBT 150 ms. Pass or fail is printed in the job log; the reports themselves are written to the runner's disk and never uploaded (see "Lighthouse reports" below).
 
 Repository settings these workflows rely on: Settings > Pages > Source is **GitHub Actions**; Settings > Actions > General > Workflow permissions is read-only for repository contents (the deploy workflow requests `pages: write` and `id-token: write` itself). Optionally protect `main` and require the `quality` check from the "Quality (PRs)" workflow.
 
@@ -269,7 +269,15 @@ npx --yes pa11y-ci@5.0.0 --config .pa11yci.json
 npx --yes @lhci/cli@0.15.1 autorun --config=./lighthouserc.json
 ```
 
-Both tools need a Chrome browser; pa11y-ci downloads its own on first use. `lhci autorun` uploads its report to temporary public storage, as it does in CI.
+Both tools need a Chrome browser; pa11y-ci downloads its own on first use. `lhci autorun` writes its reports to `.lighthouseci/reports/` (git-ignored), as it does in CI.
+
+### Lighthouse reports
+
+Lighthouse audits the pages with JavaScript on, after `site.js` has decoded the contact links, so every report contains the email address in plain text and a full-page screenshot that shows the email and the phone number. Keep reports private:
+
+- Leave `upload.target` in `lighthouserc.json` at `"filesystem"`. Never switch it to `"temporary-public-storage"` or an LHCI server, and do not upload `.lighthouseci/` as a workflow artifact (artifacts of a public repository can be downloaded by any signed-in GitHub user).
+- Do not attach a report or a screenshot from one to an issue, a pull request or a chat.
+- To look at a report, run Lighthouse locally (above) and open the HTML file in `.lighthouseci/reports/`.
 
 ## Custom domain
 

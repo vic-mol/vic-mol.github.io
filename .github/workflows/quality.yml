@@ -65,5 +65,8 @@ jobs:
         env:
           PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
         run: npx --yes pa11y-ci@5.0.0 --config .pa11yci.json
+      # Reports stay on the runner (lighthouserc.json: upload target "filesystem") and are never uploaded, not even
+      # as an artifact: the page is audited with JavaScript on, so each report holds the decoded email address and a
+      # full-page screenshot of the contact details.
       - name: Lighthouse CI
         run: npx --yes @lhci/cli@0.15.1 autorun --config=./lighthouserc.json
