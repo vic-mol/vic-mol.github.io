@@ -261,6 +261,14 @@ rule('hreflang', () => {
     const res = check(path.join(GOOD, 'public'));
     assert.equal(byRule(res, 'hreflang').length, 0);
   });
+  test('pager pages (page 2 of both blogs) need no hreflang and are not each other\'s translation', () => {
+    const sb = sandbox();
+    // what the templates write for page 2: self canonical, no hreflang, switcher to the other blog's index
+    clonePage(sb, 'posts/index.html', 'posts/page/2/index.html', { switchTo: '/es/posts/', sitemap: 'en/sitemap.xml' });
+    clonePage(sb, 'es/posts/index.html', 'es/posts/page/2/index.html', { switchTo: '/posts/', sitemap: 'es/sitemap.xml' });
+    const res = sb.run();
+    assert.equal(res.violations.length, 0, summary(res));
+  });
 });
 
 rule('lang-switch', () => {

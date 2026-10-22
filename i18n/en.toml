@@ -168,3 +168,7 @@ other = "Built with Hugo and the CareerCanvas theme"
 other = "Back to top"
 [present]
 other = "Present"
+[tagsDescription]
+other = "All tags on {{ .Name }}'s portfolio: projects and posts on AI security, threat intelligence and data engineering."
+[termDescription]
+other = "Projects and posts tagged “{{ .Term }}” on {{ .Name }}'s portfolio: AI security, threat intelligence and data."

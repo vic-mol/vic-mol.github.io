@@ -93,6 +93,7 @@ export const CONTACT_PATTERNS = [
 
 const CONFIRM_RE = /\[CONFIRM\]/i;
 const HARDCODED_HOST_RE = /vic-mol\.github\.io/i;
+const PAGER_RE = /(^|\/)page\/\d+\/index\.html$/;
 
 const BINARY_EXT = new Set([
   'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'ico', 'bmp', 'woff', 'woff2', 'ttf', 'otf', 'eot',
@@ -332,6 +333,7 @@ export function createContext(publicDirArg, { base, repoRoot } = {}) {
       $,
       stub: isRedirectStub($),
       is404: path.posix.basename(file) === '404.html',
+      isPager: PAGER_RE.test(file),
       noindex: /noindex/.test(robots),
       alternates: alternatesOf($),
     };
@@ -452,9 +454,11 @@ export function createContext(publicDirArg, { base, repoRoot } = {}) {
 
   // ---- translation graph: mirror paths + hreflang links + sitemap alternates
   const edges = new Map();
+  // Pager pages (posts/page/2/) are not translations of each other: page N of each language lists different
+  // posts, so they carry no hreflang and stay out of the graph.
   const eligible = (f) => {
     const p = ctx.pages.get(f);
-    return Boolean(p) && !p.stub && !p.is404;
+    return Boolean(p) && !p.stub && !p.is404 && !p.isPager;
   };
   const link = (a, b) => {
     if (!a || !b || a === b || !eligible(a) || !eligible(b)) return;
@@ -677,7 +681,7 @@ export function langSwitch($, file, ctx) {
 export function translationParity(_$, _file, ctx) {
   const out = [];
   for (const page of ctx.pageList) {
-    if (page.is404 || !/^(es\/)?(projects|gallery|posts)\//.test(page.file)) continue;
+    if (page.is404 || page.isPager || !/^(es\/)?(projects|gallery|posts)\//.test(page.file)) continue;
     const other = page.lang === 'en' ? 'es' : 'en';
     if (ctx.translationsOf(page.file).some((f) => ctx.langOf(f) === other)) continue;
     out.push({
@@ -973,7 +977,7 @@ export function sitemap(_$, _file, ctx) {
 
   for (const lang of ['en', 'es']) {
     const expected = ctx.pageList.filter(
-      (p) => p.lang === lang && !p.is404 && !p.noindex && !/(^|\/)page\/\d+\/index\.html$/.test(p.file),
+      (p) => p.lang === lang && !p.is404 && !p.noindex && !p.isPager,
     );
     if (!expected.length) continue;
     if (!expected.some((p) => listed.has(p.file))) {

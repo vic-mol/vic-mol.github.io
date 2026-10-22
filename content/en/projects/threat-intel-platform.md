@@ -8,7 +8,6 @@ kind: "case-study"
 featured_image: "images/projects/threat-intel-platform/cover.svg"
 stack: ["Apache Airflow", "PostgreSQL", "Azure Container Apps", "Key Vault", "GitHub Actions", "Python"]
 tags: ["data-engineering", "threat-intelligence", "azure", "airflow"]
-# [CONFIRM] OK to publish this case study? Add a shareable metric to "Result" if possible.
 repo: ""      # internal work; no public code
 live: ""
 ---

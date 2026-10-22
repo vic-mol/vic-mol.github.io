@@ -1,0 +1,13 @@
+{{- /*
+  The collection a list page paginates (newest first), or an empty slice when the page is not paginated.
+  Shared by posts/list.html, _default/term.html and head.html: Hugo fixes a page's paginator on the first
+  .Paginate call (head.html runs first), so every caller must pass this same collection.
+  Usage: {{ $paginator := .Paginate (partial "paginated-pages.html" .) }}
+*/ -}}
+{{- $pages := slice -}}
+{{- if and (eq .Kind "section") (eq .Section "posts") -}}
+  {{- $pages = .RegularPages.ByDate.Reverse -}}
+{{- else if eq .Kind "term" -}}
+  {{- $pages = (where .Pages "Section" "posts").ByDate.Reverse -}}
+{{- end -}}
+{{- return $pages -}}

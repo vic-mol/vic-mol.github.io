@@ -76,6 +76,14 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') setOpen(false, true);
     });
+    // Close when the layout switches to the desktop nav (the button disappears) and when the page comes
+    // back from the back/forward cache, so aria-expanded never claims a menu nobody can see.
+    window.addEventListener('resize', function () {
+      if (btn.getAttribute('aria-expanded') === 'true' && !btn.getClientRects().length) setOpen(false);
+    });
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted) setOpen(false);
+    });
   }
 
   /* -- Section fade-in ---------------------------------------------------- */

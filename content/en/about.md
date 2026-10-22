@@ -29,7 +29,7 @@ personal: >-   # [CONFIRM] interests come from the 2025 CV
 quickfacts:
   - icon: "briefcase"
     title: "Current role"
-    value: "Security AI Engineer at <a href=\"https://www.levistrauss.com\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Levi Strauss & Co.</strong></a>"
+    value: "Security AI Engineer at <a href=\"https://www.levistrauss.com\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Levi Strauss & Co.</strong><span class=\"sr-only\"> (opens in a new tab)</span></a>"
   - icon: "graduation-cap"
     title: "Education"
     value: "**Computer Engineering**, Faculty of Engineering, UNAM"

@@ -19,7 +19,21 @@
   {{- $title = printf "%s: %s — %s" (i18n "tags") .Data.Term $siteName -}}
 {{- end -}}
 {{- $desc := cond (ne .Description "") .Description site.Params.description -}}
+{{- if eq .Kind "taxonomy" -}}
+  {{- $desc = i18n "tagsDescription" (dict "Name" $siteName) -}}
+{{- else if eq .Kind "term" -}}
+  {{- $desc = i18n "termDescription" (dict "Name" $siteName "Term" .Data.Term) -}}
+{{- end -}}
 {{- $posts := where site.RegularPages "Section" "posts" -}}
+{{- /* Pages 2+ of a paginated list are their own URL: self canonical, and no hreflang (the other language's
+       page N, if any, holds different posts). The collection must match the list template's, see the partial. */ -}}
+{{- $canonical := .Permalink -}}
+{{- $pagerNum := 1 -}}
+{{- with partial "paginated-pages.html" . -}}
+  {{- $pager := $.Paginate . -}}
+  {{- $pagerNum = $pager.PageNumber -}}
+  {{- if gt $pagerNum 1 }}{{ $canonical = $pager.URL | absURL }}{{ end -}}
+{{- end -}}
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,13 +44,13 @@
 <title>{{ $title }}</title>
 <meta name="description" content="{{ $desc }}">
 <meta name="author" content="{{ site.Params.author | default $siteName }}">
-<link rel="canonical" href="{{ .Permalink }}">
-{{- if and .IsSection (eq .Section "posts") (not $posts) }}
+<link rel="canonical" href="{{ $canonical }}">
+{{- if or (eq .Kind "404") (and .IsSection (eq .Section "posts") (not $posts)) }}
 <meta name="robots" content="noindex">
 {{- end }}
 
 {{- /* Language alternates: every translation plus x-default pointing at the default language */ -}}
-{{- if .IsTranslated }}
+{{- if and .IsTranslated (ne .Kind "404") (eq $pagerNum 1) }}
 {{- range .AllTranslations }}
 <link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}">
 {{- end }}
@@ -62,7 +76,7 @@
 <meta property="og:type" content="{{ cond $isPost "article" "website" }}">
 <meta property="og:title" content="{{ $title }}">
 <meta property="og:description" content="{{ $desc }}">
-<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:url" content="{{ $canonical }}">
 <meta property="og:site_name" content="{{ $siteName }}">
 <meta property="og:locale" content="{{ site.Params.og_locale }}">
 {{- range .Translations }}
