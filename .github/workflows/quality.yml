@@ -47,8 +47,18 @@ jobs:
             ${{ github.event_name != 'schedule' && '--offline' || '--max-retries 2 --exclude linkedin.com' }}
             "public/**/*.html"
           fail: true
+      # GitHub Pages compresses text responses; http-server only serves pre-gzipped siblings (-g).
+      # Without this Lighthouse measures the uncompressed site (about 86 instead of 97 on the home page).
+      - name: Pre-compress public/ like GitHub Pages does
+        run: >-
+          find public -type f
+          \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.svg' -o -name '*.xml' -o -name '*.json' -o -name '*.txt' -o -name '*.webmanifest' \)
+          -exec gzip -9 -k -f {} +
       - name: Serve public/
-        run: npx --yes http-server@14.1.1 public -p 8080 -s &
+        run: |
+          npx --yes http-server@14.1.1 public -p 8080 -s -g &
+          for _ in $(seq 1 30); do curl -sf -o /dev/null http://localhost:8080/ && exit 0; sleep 1; done
+          echo "http-server did not start" >&2; exit 1
       - name: Accessibility (axe via pa11y-ci, every URL in both sitemaps)
         run: npx --yes pa11y-ci@5.0.0 --config .pa11yci.json
       - name: Lighthouse CI
