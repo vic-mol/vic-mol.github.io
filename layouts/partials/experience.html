@@ -36,7 +36,7 @@
       <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center items-center">
         {{- range . }}
         <a href="{{ .url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center bg-gradient-primary text-white text-sm sm:text-lg px-4 sm:px-6 py-4 rounded-lg font-semibold shadow-lg w-auto button-hover">
-          <i class="fa-solid fa-file-pdf text-2xl mr-3" aria-hidden="true"></i>
+          {{ partial "icon.html" (dict "name" "file-pdf" "class" "text-2xl mr-3") }}
           {{ i18n "downloadResume" }} ({{ .label }})<span class="sr-only"> {{ i18n "opensInNewTab" }}</span>
         </a>
         {{- end }}
@@ -61,7 +61,7 @@
           <!-- Overall period badge: mobile, above the cards -->
           <div class="md:hidden px-4 text-center mb-4">
             <div class="inline-block bg-gradient-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-              <i class="fa-solid fa-calendar-days mr-2" aria-hidden="true"></i>{{ $exp.period }}
+              {{ partial "icon.html" (dict "name" "calendar-days" "class" "mr-2") }}{{ $exp.period }}
             </div>
           </div>
 
@@ -72,7 +72,7 @@
                 <div class="company-card bg-bg dark:bg-bg p-6 rounded-lg shadow-lg border border-border-primary dark:border-border-primary">
                   <h3 class="text-xl font-heading font-bold text-text-primary dark:text-text-primary mb-2">
                     {{- if $exp.company_url }}
-                    <a href="{{ $exp.company_url }}" target="_blank" rel="noopener noreferrer" class="company-link">{{ $exp.company }}<i class="fa-solid fa-arrow-up-right-from-square ml-2 text-sm" aria-hidden="true"></i><span class="sr-only"> {{ i18n "opensInNewTab" }}</span></a>
+                    <a href="{{ $exp.company_url }}" target="_blank" rel="noopener noreferrer" class="company-link">{{ $exp.company }}{{ partial "icon.html" (dict "name" "arrow-up-right-from-square" "class" "ml-2 text-sm") }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></a>
                     {{- else }}
                     {{ $exp.company }}
                     {{- end }}
@@ -85,17 +85,17 @@
                   <div class="flex flex-wrap gap-2 mb-3">
                     {{- if $exp.industry }}
                     <span class="inline-flex items-center bg-third-darker text-white px-3 py-1 rounded-full text-xs font-medium">
-                      <i class="fa-solid fa-industry mr-1" aria-hidden="true"></i>{{ $exp.industry }}
+                      {{ partial "icon.html" (dict "name" "industry" "class" "mr-1") }}{{ $exp.industry }}
                     </span>
                     {{- end }}
                     {{- if $exp.location }}
                     <span class="inline-flex items-center bg-primary text-white px-3 py-1 rounded-full text-xs font-medium">
-                      <i class="fa-solid fa-location-dot mr-1" aria-hidden="true"></i>{{ $exp.location }}
+                      {{ partial "icon.html" (dict "name" "location-dot" "class" "mr-1") }}{{ $exp.location }}
                     </span>
                     {{- end }}
                     {{- if $exp.award }}
                     <span class="inline-flex items-center bg-third-darker text-white px-3 py-1 rounded-full text-xs font-medium">
-                      <i class="fa-solid fa-trophy mr-1" aria-hidden="true"></i>{{ $exp.award }}
+                      {{ partial "icon.html" (dict "name" "trophy" "class" "mr-1") }}{{ $exp.award }}
                     </span>
                     {{- end }}
                   </div>
@@ -111,7 +111,7 @@
             <div class="md:w-1/2 px-4">
               <!-- Overall period badge: desktop -->
               <div class="hidden md:block bg-gradient-primary text-white px-4 py-2 rounded-full text-sm font-medium mb-3 shadow-lg w-fit">
-                <i class="fa-solid fa-calendar-days mr-2" aria-hidden="true"></i>{{ $exp.period }}
+                {{ partial "icon.html" (dict "name" "calendar-days" "class" "mr-2") }}{{ $exp.period }}
               </div>
 
               {{- if $hasRoles }}
@@ -120,23 +120,23 @@
                 <div class="achievements-card bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-lg shadow-lg border border-border-primary dark:border-border-primary">
                   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <div class="flex items-center">
-                      <i class="fa-solid fa-briefcase text-third dark:text-third-light mr-3 text-lg" aria-hidden="true"></i>
+                      {{ partial "icon.html" (dict "name" "briefcase" "class" "text-third dark:text-third-light mr-3 text-lg") }}
                       <h5 class="text-lg font-semibold text-text-primary dark:text-text-primary">{{ .title }}</h5>
                     </div>
                     {{- with .period }}
                     <div class="inline-flex items-center bg-gradient-primary text-white px-3 py-1 rounded-full text-xs font-medium shadow w-fit">
-                      <i class="fa-solid fa-calendar-days mr-2" aria-hidden="true"></i>{{ . }}
+                      {{ partial "icon.html" (dict "name" "calendar-days" "class" "mr-2") }}{{ . }}
                     </div>
                     {{- end }}
                   </div>
                   <p class="flex items-center mb-3 text-base font-semibold text-text-primary dark:text-text-primary">
-                    <i class="fa-solid fa-list-check text-third dark:text-third-light mr-3 text-base" aria-hidden="true"></i>
+                    {{ partial "icon.html" (dict "name" "list-check" "class" "text-third dark:text-third-light mr-3 text-base") }}
                     {{ i18n "keyAchievements" }}
                   </p>
                   <ul class="space-y-3 text-text-secondary dark:text-text-secondary" role="list">
                     {{- range .bullet_points }}
                     <li class="flex items-start">
-                      <i class="fa-solid fa-circle-check text-second mr-3 mt-1 flex-shrink-0" aria-hidden="true"></i>
+                      {{ partial "icon.html" (dict "name" "circle-check" "class" "text-second mr-3 mt-1 flex-shrink-0") }}
                       <span>{{ . | markdownify }}</span>
                     </li>
                     {{- end }}
@@ -147,13 +147,13 @@
               {{- else }}
               <div class="achievements-card bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-lg shadow-lg border border-border-primary dark:border-border-primary">
                 <div class="flex items-center mb-4">
-                  <i class="fa-solid fa-list-check text-third dark:text-third-light mr-3 text-lg" aria-hidden="true"></i>
+                  {{ partial "icon.html" (dict "name" "list-check" "class" "text-third dark:text-third-light mr-3 text-lg") }}
                   <h5 class="text-lg font-semibold text-text-primary dark:text-text-primary">{{ i18n "keyAchievements" }}</h5>
                 </div>
                 <ul class="space-y-3 text-text-secondary dark:text-text-secondary" role="list">
                   {{- range $exp.bullet_points }}
                   <li class="flex items-start">
-                    <i class="fa-solid fa-circle-check text-second mr-3 mt-1 flex-shrink-0" aria-hidden="true"></i>
+                    {{ partial "icon.html" (dict "name" "circle-check" "class" "text-second mr-3 mt-1 flex-shrink-0") }}
                     <span>{{ . | markdownify }}</span>
                   </li>
                   {{- end }}

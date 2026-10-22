@@ -17,18 +17,18 @@
         <p class="site-footer__text">{{ . }}</p>
         {{- end }}
         {{- with site.Params.hero_location }}
-        <p class="site-footer__meta"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ . }}</span></p>
+        <p class="site-footer__meta">{{ partial "icon.html" (dict "name" "location-dot") }}<span>{{ . }}</span></p>
         {{- end }}
         {{- if templates.Exists "partials/contact-link.html" }}
-        <p class="site-footer__meta"><i class="fa-solid fa-envelope" aria-hidden="true"></i>{{ partial "contact-link.html" (dict "page" $page "kind" "email" "class" "site-footer__link") }}</p>
+        <p class="site-footer__meta">{{ partial "icon.html" (dict "name" "envelope") }}{{ partial "contact-link.html" (dict "page" $page "kind" "email" "class" "site-footer__link") }}</p>
         {{- end }}
         <ul class="site-footer__links">
           {{- range site.Params.social }}
-          <li><a class="site-footer__link" href="{{ .url }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-{{ .icon }}" aria-hidden="true"></i><span>{{ .label | default .icon }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
+          <li><a class="site-footer__link" href="{{ .url }}" target="_blank" rel="noopener noreferrer">{{ partial "icon.html" (dict "name" .icon "style" "brands") }}<span>{{ .label | default .icon }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
           {{- end }}
           {{- if partial "has-posts.html" $page }}
           {{- with site.GetPage "/posts" }}{{ with .OutputFormats.Get "rss" }}
-          <li><a class="site-footer__link" href="{{ .RelPermalink }}"><i class="fa-solid fa-rss" aria-hidden="true"></i><span>{{ i18n "subscribeRss" }}</span></a></li>
+          <li><a class="site-footer__link" href="{{ .RelPermalink }}">{{ partial "icon.html" (dict "name" "rss") }}<span>{{ i18n "subscribeRss" }}</span></a></li>
           {{- end }}{{ end }}
           {{- end }}
         </ul>

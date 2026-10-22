@@ -11,14 +11,14 @@
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
     <header class="mb-10">
       <p class="mb-2 text-sm font-medium">
-        {{- with .Parent }}<a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-tags" aria-hidden="true"></i> {{ i18n "tags" }}</a>{{ end -}}
+        {{- with .Parent }}<a class="meta-link" href="{{ .RelPermalink }}">{{ partial "icon.html" (dict "name" "tags") }} {{ i18n "tags" }}</a>{{ end -}}
       </p>
       <h1 class="text-3xl md:text-4xl font-bold mb-3 font-heading text-text-primary dark:text-text-primary">
         {{- if $posts }}{{ i18n "taggedWith" }} <span class="tag-name">{{ $term }}</span>{{ else }}<span class="tag-name">{{ $term }}</span>{{ end -}}
       </h1>
       {{- if $posts }}
       {{- with .OutputFormats.Get "rss" }}
-      <p class="mt-4 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-rss" aria-hidden="true"></i> {{ i18n "subscribeRss" }}</a></p>
+      <p class="mt-4 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}">{{ partial "icon.html" (dict "name" "rss") }} {{ i18n "subscribeRss" }}</a></p>
       {{- end }}
       {{- end }}
     </header>
@@ -64,7 +64,7 @@
     {{- if not (or $posts $projects) }}
     <div class="text-center py-12">
       <div class="bg-bg-secondary dark:bg-bg-tertiary rounded-xl border border-border-primary dark:border-border-primary p-8 max-w-md mx-auto">
-        <i class="fa-solid fa-tags text-4xl text-text-muted dark:text-text-muted mb-4" aria-hidden="true"></i>
+        {{ partial "icon.html" (dict "name" "tags" "class" "text-4xl text-text-muted dark:text-text-muted mb-4") }}
         <h2 class="text-lg font-semibold text-text-secondary dark:text-text-secondary mb-2">{{ i18n "noItemsYet" }}</h2>
         <p class="m-0 text-sm text-text-muted dark:text-text-muted">{{ i18n "noItemsYetBody" }}</p>
       </div>

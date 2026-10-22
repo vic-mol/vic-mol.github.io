@@ -30,7 +30,7 @@
           </div>
           {{- else }}
           <div class="featured-card__cover featured-card__cover--empty" aria-hidden="true">
-            <i class="fa-solid fa-diagram-project"></i>
+            {{ partial "icon.html" (dict "name" "diagram-project") }}
           </div>
           {{- end }}
           <div class="flex flex-col flex-1 p-6">
@@ -58,7 +58,7 @@
 
     <p class="mt-10 text-center">
       <a href="{{ "projects/" | relLangURL }}" class="inline-flex items-center gap-2 min-h-[44px] bg-gradient-primary text-white px-6 py-3 rounded-lg shadow-lg font-semibold button-hover">
-        {{ i18n "allProjects" }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        {{ i18n "allProjects" }}{{ partial "icon.html" (dict "name" "arrow-right") }}
       </a>
     </p>
   </div>

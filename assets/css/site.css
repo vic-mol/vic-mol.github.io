@@ -755,10 +755,9 @@ html.no-js #menu-btn { display: none; }
   color: var(--color-text-secondary);
 }
 
-.site-footer__meta > i {
+.site-footer__meta > .icon {
   flex: none;
   width: 1.25rem;
-  text-align: center;
 }
 
 .site-footer__link {
@@ -788,7 +787,7 @@ html.no-js #menu-btn { display: none; }
 
 .site-footer__links .site-footer__link:hover { text-decoration: underline; }
 
-.site-footer__links i { font-size: 1.25rem; }
+.site-footer__links .icon { font-size: 1.25rem; }
 
 .site-footer__tags {
   display: flex;
@@ -1644,9 +1643,8 @@ html.no-js .about-dialog__intro {
   font-weight: 600;
 }
 
-.contact-row dt i {
+.contact-row dt .icon {
   width: 1.25rem;
-  text-align: center;
   color: var(--color-first-light);
 }
 
@@ -1706,4 +1704,25 @@ html.no-js .about-dialog__intro {
 html.no-js .contact-row--phone,
 html.no-js .site-footer__meta:has(> .js-contact) {
   display: none;
+}
+
+/* == T11: icons == */
+/* Inline Font Awesome SVGs (layouts/partials/icon.html; they replaced the Font Awesome webfonts and CSS).
+   Each icon is 1em tall and follows the font-size and colour of the text around it, like the glyph it
+   replaces. Its width is the width attribute that icon.html derives from the viewBox (the glyph's advance
+   in em), so no width is set here and a component rule (.quick-fact__icon, .site-footer__meta > .icon)
+   can still give an icon its own box. Tailwind's preflight makes every svg display:block with
+   vertical-align:middle; this rule (more specific than the element selector) puts it back in the text
+   flow, 0.125em below the baseline, where the font glyph sat. */
+.icon {
+  display: inline-block;
+  height: 1em;
+  vertical-align: -.125em;
+  flex-shrink: 0;
+}
+
+/* Quick facts: the old glyph sat in a 28px line box (text-lg), the same height as the title beside it, so the
+   icon was centred on the title's first line. 18px icon + 2 x 5px margin keeps that alignment. */
+.quick-fact__icon {
+  margin-block: 5px;
 }

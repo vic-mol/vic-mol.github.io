@@ -12,9 +12,9 @@
   <ul class="m-0 flex list-none flex-wrap items-center justify-center gap-2 p-0" role="list">
     <li>
       {{- if .HasPrev }}
-      <a class="page-link" rel="prev" href="{{ .Prev.URL }}" aria-label="{{ i18n "pageOf" (dict "Current" .Prev.PageNumber "Total" $total) }}"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></a>
+      <a class="page-link" rel="prev" href="{{ .Prev.URL }}" aria-label="{{ i18n "pageOf" (dict "Current" .Prev.PageNumber "Total" $total) }}">{{ partial "icon.html" (dict "name" "chevron-left") }}</a>
       {{- else }}
-      <span class="page-link page-link-disabled" aria-hidden="true"><i class="fa-solid fa-chevron-left"></i></span>
+      <span class="page-link page-link-disabled" aria-hidden="true">{{ partial "icon.html" (dict "name" "chevron-left") }}</span>
       {{- end }}
     </li>
     {{- $last := 0 }}
@@ -36,9 +36,9 @@
     {{- end }}
     <li>
       {{- if .HasNext }}
-      <a class="page-link" rel="next" href="{{ .Next.URL }}" aria-label="{{ i18n "pageOf" (dict "Current" .Next.PageNumber "Total" $total) }}"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+      <a class="page-link" rel="next" href="{{ .Next.URL }}" aria-label="{{ i18n "pageOf" (dict "Current" .Next.PageNumber "Total" $total) }}">{{ partial "icon.html" (dict "name" "chevron-right") }}</a>
       {{- else }}
-      <span class="page-link page-link-disabled" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+      <span class="page-link page-link-disabled" aria-hidden="true">{{ partial "icon.html" (dict "name" "chevron-right") }}</span>
       {{- end }}
     </li>
   </ul>

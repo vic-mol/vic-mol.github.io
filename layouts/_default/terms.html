@@ -9,7 +9,7 @@
       <h1 class="text-3xl md:text-4xl font-bold mb-3 font-heading text-text-primary dark:text-text-primary">{{ i18n "tags" }}</h1>
       {{- /* Only offer the blog once this language has a post (otherwise it is an empty, noindex page). */}}
       {{- with site.GetPage "/posts" }}{{ if .RegularPages }}
-      <p class="mt-4 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "allPosts" }}</a></p>
+      <p class="mt-4 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}">{{ partial "icon.html" (dict "name" "arrow-left") }} {{ i18n "allPosts" }}</a></p>
       {{- end }}{{ end }}
     </header>
 
@@ -28,7 +28,7 @@
     {{- else }}
     <div class="text-center py-12">
       <div class="bg-bg-secondary dark:bg-bg-tertiary rounded-xl border border-border-primary dark:border-border-primary p-8 max-w-md mx-auto">
-        <i class="fa-solid fa-tags text-4xl text-text-muted dark:text-text-muted mb-4" aria-hidden="true"></i>
+        {{ partial "icon.html" (dict "name" "tags" "class" "text-4xl text-text-muted dark:text-text-muted mb-4") }}
         <h2 class="text-lg font-semibold text-text-secondary dark:text-text-secondary mb-2">{{ i18n "noItemsYet" }}</h2>
         <p class="m-0 text-sm text-text-muted dark:text-text-muted">{{ i18n "noItemsYetBody" }}</p>
       </div>

@@ -3,8 +3,8 @@
   Differences from the theme: the icon <img> src is known at build time (the SVG is vendored in
   assets/icons/devicon/<devicon_name>-<devicon_style>.svg, style default "original"), so there is no
   CDN and no JavaScript; the icons are decorative (alt="" + aria-hidden) because the skill name is shown
-  as text; every group is a list; the Font Awesome fallback uses the right prefix (fa-brands for brand
-  icons, fa-solid for the rest) and one colour instead of a random one.
+  as text; every group is a list; the Font Awesome fallback is the inline SVG of partials/icon.html (style
+  "auto": the brands set for the names listed there, solid for the rest) in one colour instead of a random one.
   Icons that vanish on a dark background are inverted there on the theme's translucent tile (theme list
   below; a skill can also set `invert_on_dark: true`); every other colour icon sits on a near-white tile
   in dark mode, because devicons are drawn for light backgrounds (Oracle red, AWS navy and MySQL blue are
@@ -18,7 +18,6 @@
     <p class="text-lg text-center mb-12 text-text-secondary dark:text-text-tertiary italic">{{ .Params.intro }}</p>
 
     {{- $invertOnDark := slice "nextjs" "github" "ollama" "keras" "prisma" }}
-    {{- $brandIcons := slice "python" "react" "docker" "github" "linux" "aws" "java" "js" "node-js" }}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {{- range .Params.technical_groups }}
       <div class="bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-lg shadow-lg border border-border-primary dark:border-border-primary tech-skill-card">
@@ -38,7 +37,7 @@
               {{- if $svg }}
               <img src="{{ $svg.RelPermalink }}" alt="" aria-hidden="true" width="48" height="48" loading="lazy" decoding="async" class="tech-icon w-12 h-12{{ if $invert }} dark:invert dark:brightness-200{{ end }}">
               {{- else }}
-              <i class="{{ if in $brandIcons ($skill.icon | default "") }}fa-brands{{ else }}fa-solid{{ end }} fa-{{ $skill.icon }} tech-fallback-icon text-4xl text-primary dark:text-white" aria-hidden="true"></i>
+              {{ partial "icon.html" (dict "name" $skill.icon "style" "auto" "class" "tech-fallback-icon text-4xl text-primary dark:text-white") }}
               {{- end }}
             </div>
             <span class="text-sm md:text-base font-semibold text-text-secondary dark:text-text-secondary">{{ $skill.name }}</span>

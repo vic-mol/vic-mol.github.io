@@ -60,8 +60,8 @@
         <h2 class="error-card__title font-heading">{{ .text.pageNotFound }}</h2>
         <p class="error-card__text">{{ .text.pageNotFoundSubtitle }}</p>
         <ul class="error-card__actions" role="list">
-          <li><a class="error-btn error-btn--primary" href="{{ .home }}"><i class="fa-solid fa-house" aria-hidden="true"></i><span>{{ .text.goHome }}</span></a></li>
-          <li><a class="error-btn error-btn--secondary" href="{{ .projects }}"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>{{ .text.projects }}</span></a></li>
+          <li><a class="error-btn error-btn--primary" href="{{ .home }}">{{ partial "icon.html" (dict "name" "house") }}<span>{{ .text.goHome }}</span></a></li>
+          <li><a class="error-btn error-btn--secondary" href="{{ .projects }}">{{ partial "icon.html" (dict "name" "diagram-project") }}<span>{{ .text.projects }}</span></a></li>
         </ul>
       </div>
       {{- end }}

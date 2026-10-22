@@ -1,3 +1,11 @@
+This project ships only the Font Awesome Free 6.7.2 SVG icons, which are licensed under
+CC BY 4.0 (see "Icons" below). They are vendored in assets/icons/fa/{solid,brands}/ by
+scripts/vendor.mjs and inlined into the HTML by layouts/partials/icon.html. No Font Awesome font
+files, stylesheets or scripts are shipped, so the SIL OFL (fonts) and MIT (code) sections do not
+apply to anything published. The attribution comment inside each SVG file is kept in the repository.
+The text below is the license file of the package, unchanged.
+--------------------------------------------------------------------------------
+
 Fonticons, Inc. (https://fontawesome.com)
 
 --------------------------------------------------------------------------------

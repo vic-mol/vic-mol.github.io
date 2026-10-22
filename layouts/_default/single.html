@@ -18,15 +18,15 @@
 <article class="pt-8 pb-16 bg-bg dark:bg-bg">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     {{- if and $list (not $list.IsHome) }}
-    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ $list.RelPermalink }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "projects" }}</a></p>
+    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ $list.RelPermalink }}">{{ partial "icon.html" (dict "name" "arrow-left") }} {{ i18n "projects" }}</a></p>
     {{- end }}
 
     <header class="project-hero mb-10">
       <div class="project-hero__text">
         {{- if eq .Params.kind "case-study" }}
-        <p class="m-0 mb-4"><span class="kind-badge kind-badge--case-study"><i class="fa-solid fa-briefcase" aria-hidden="true"></i>{{ i18n "caseStudy" }}</span></p>
+        <p class="m-0 mb-4"><span class="kind-badge kind-badge--case-study">{{ partial "icon.html" (dict "name" "briefcase") }}{{ i18n "caseStudy" }}</span></p>
         {{- else if eq .Params.kind "personal" }}
-        <p class="m-0 mb-4"><span class="kind-badge kind-badge--personal"><i class="fa-solid fa-laptop-code" aria-hidden="true"></i>{{ i18n "personalProject" }}</span></p>
+        <p class="m-0 mb-4"><span class="kind-badge kind-badge--personal">{{ partial "icon.html" (dict "name" "laptop-code") }}{{ i18n "personalProject" }}</span></p>
         {{- end }}
 
         <h1 class="mb-4 text-3xl md:text-5xl font-bold leading-tight font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h1>
@@ -40,13 +40,13 @@
         {{- if or $repo $live $private }}
         <ul class="project-links" role="list">
           {{- with $repo }}
-          <li><a class="project-link" href="{{ . }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github" aria-hidden="true"></i><span>{{ i18n "sourceCode" }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
+          <li><a class="project-link" href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ partial "icon.html" (dict "name" "github" "style" "brands") }}<span>{{ i18n "sourceCode" }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
           {{- end }}
           {{- with $live }}
-          <li><a class="project-link project-link--primary" href="{{ . }}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>{{ i18n "liveSite" }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
+          <li><a class="project-link project-link--primary" href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ partial "icon.html" (dict "name" "arrow-up-right-from-square") }}<span>{{ i18n "liveSite" }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
           {{- end }}
           {{- if $private }}
-          <li><span class="project-private"><i class="fa-solid fa-lock" aria-hidden="true"></i><span>{{ i18n "privateRepo" }}</span></span></li>
+          <li><span class="project-private">{{ partial "icon.html" (dict "name" "lock") }}<span>{{ i18n "privateRepo" }}</span></span></li>
           {{- end }}
         </ul>
         {{- end }}
@@ -83,7 +83,7 @@
       </ul>
       {{- end }}
       {{- if and $list (not $list.IsHome) }}
-      <p class="m-0 text-sm font-medium"><a class="meta-link" href="{{ $list.RelPermalink }}">{{ i18n "allProjects" }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></p>
+      <p class="m-0 text-sm font-medium"><a class="meta-link" href="{{ $list.RelPermalink }}">{{ i18n "allProjects" }} {{ partial "icon.html" (dict "name" "arrow-right") }}</a></p>
       {{- end }}
     </footer>
   </div>

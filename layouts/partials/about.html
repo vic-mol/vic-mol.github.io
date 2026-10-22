@@ -18,14 +18,14 @@
           <figure class="about-photo mb-6">
             {{- partial "img.html" (dict "page" $ "src" "images/about/victor-golden-gate-shoreline.jpg" "ratio" "4:3" "widths" (slice 480 800 1200) "sizes" "(min-width: 1024px) 544px, calc(100vw - 5.5rem)" "class" "about-photo__img") }}
             <figcaption class="about-photo__caption">
-              <a class="about-photo__link" href="{{ "gallery/" | relLangURL }}">{{ i18n "gallery" }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+              <a class="about-photo__link" href="{{ "gallery/" | relLangURL }}">{{ i18n "gallery" }}{{ partial "icon.html" (dict "name" "arrow-right") }}</a>
               <span class="about-photo__text">{{ i18n "galleryIntro" }}</span>
             </figcaption>
           </figure>
           <div class="text-lg text-text-secondary dark:text-text-secondary leading-relaxed">{{ $about.Params.intro | markdownify }}</div>
           <div class="mt-6">
             <a href="{{ site.Params.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center min-h-[44px] bg-gradient-primary text-white px-4 py-2 rounded-lg shadow-lg about-button button-hover">
-              <i class="fa-brands fa-linkedin-in mr-3 text-lg" aria-hidden="true"></i>
+              {{ partial "icon.html" (dict "name" "linkedin-in" "style" "brands" "class" "mr-3 text-lg") }}
               {{ i18n "connectOnLinkedIn" }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span>
             </a>
           </div>
@@ -36,11 +36,11 @@
         <div class="bg-gradient-to-br from-bg-secondary to-bg-tertiary dark:from-bg-secondary dark:to-bg-tertiary p-6 rounded-xl shadow-lg border border-border-primary dark:border-border-primary about-card">
           <div class="flex items-center justify-between gap-4 mb-6 border-b border-border-primary dark:border-border-primary pb-3">
             <h3 class="text-xl font-semibold font-heading text-text-primary dark:text-text-primary flex items-center">
-              <i class="fa-solid fa-circle-info mr-3 text-primary dark:text-white" aria-hidden="true"></i>
+              {{ partial "icon.html" (dict "name" "circle-info" "class" "mr-3 text-primary dark:text-white") }}
               {{ i18n "quickFacts" }}
             </h3>
             <button type="button" class="bg-gradient-primary text-white px-6 py-2 min-h-[44px] rounded-lg shadow-lg font-semibold flex items-center about-button text-sm button-hover" data-dialog-open="about-dialog" aria-haspopup="dialog">
-              <i class="fa-solid fa-book-open mr-2" aria-hidden="true"></i>
+              {{ partial "icon.html" (dict "name" "book-open" "class" "mr-2") }}
               {{ i18n "more" }}
             </button>
           </div>
@@ -48,7 +48,7 @@
             {{- range $about.Params.quickfacts }}
             {{- $fact := . }}
             <div class="quick-fact flex items-start py-2 px-4 rounded-xl">
-              <i class="fa-solid fa-{{ $fact.icon }} quick-fact__icon text-primary dark:text-white text-lg mr-3" aria-hidden="true"></i>
+              {{ partial "icon.html" (dict "name" $fact.icon "class" "quick-fact__icon text-primary dark:text-white text-lg mr-3") }}
               <div class="flex-1 min-w-0">
                 <h4 class="font-bold text-text-primary dark:text-text-primary mb-1 text-lg">{{ $fact.title }}</h4>
                 {{- $isList := or (eq $fact.kind "interests") (eq $fact.kind "languages") }}
@@ -77,7 +77,7 @@
         <div class="flex justify-between items-center gap-4 mb-6">
           <h3 id="about-dialog-title" class="text-2xl font-bold font-heading text-text-primary dark:text-text-primary">{{ i18n "aboutName" }} {{ site.Params.name }}</h3>
           <button type="button" class="icon-btn about-dialog__close" data-dialog-close aria-label="{{ i18n "closeDialog" }}">
-            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            {{ partial "icon.html" (dict "name" "xmark") }}
           </button>
         </div>
         <div class="space-y-6 text-text-secondary dark:text-text-secondary">
@@ -85,7 +85,7 @@
           <div class="text-lg leading-relaxed">{{ $about.Params.study | markdownify }}</div>
           <div class="about-passion p-6 rounded-xl border border-border-primary dark:border-border-primary">
             <h4 class="text-xl font-semibold mb-3 text-text-primary dark:text-text-primary flex items-center">
-              <i class="fa-solid fa-heart mr-3 text-second" aria-hidden="true"></i>
+              {{ partial "icon.html" (dict "name" "heart" "class" "mr-3 text-second") }}
               {{ $about.Params.passion_title }}
             </h4>
             <div class="leading-relaxed">{{ $about.Params.passion_text | markdownify }}</div>

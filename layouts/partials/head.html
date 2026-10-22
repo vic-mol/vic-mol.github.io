@@ -131,13 +131,3 @@
 {{- if and .IsHome (templates.Exists "partials/hero-preload.html") }}
 {{ partial "hero-preload.html" . }}
 {{- end }}
-
-{{- /* Font Awesome (self-hosted): loaded without blocking first paint */ -}}
-{{- range slice "fontawesome" "solid" "brands" }}
-<link rel="stylesheet" href="{{ printf "vendor/fontawesome/css/%s.min.css" . | relURL }}" media="print" onload="this.media='all'">
-{{- end }}
-<noscript>
-{{- range slice "fontawesome" "solid" "brands" }}
-<link rel="stylesheet" href="{{ printf "vendor/fontawesome/css/%s.min.css" . | relURL }}">
-{{- end }}
-</noscript>

@@ -10,7 +10,7 @@
 {{ define "main" }}
 <section class="pt-8 pb-16 bg-bg dark:bg-bg">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ printf "%s#about" site.Home.RelPermalink }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "aboutMe" }}</a></p>
+    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ printf "%s#about" site.Home.RelPermalink }}">{{ partial "icon.html" (dict "name" "arrow-left") }} {{ i18n "aboutMe" }}</a></p>
 
     <header class="mb-6">
       <h1 class="m-0 text-3xl md:text-4xl font-bold font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h1>

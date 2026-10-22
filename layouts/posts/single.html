@@ -6,7 +6,7 @@
 <article class="pt-8 pb-16 bg-bg dark:bg-bg">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
     {{- with .CurrentSection }}
-    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "allPosts" }}</a></p>
+    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ .RelPermalink }}">{{ partial "icon.html" (dict "name" "arrow-left") }} {{ i18n "allPosts" }}</a></p>
     {{- end }}
 
     <header class="mb-8">
@@ -15,7 +15,7 @@
       {{- range .Translations }}
       {{- /* The translation's language name is the link (i18n escapes its arguments, so a marker is swapped for the link afterwards). */}}
       {{- $link := printf `<a class="meta-link" href="%s" hreflang="%s" lang="%s">%s</a>` .RelPermalink .Language.Lang .Language.Lang (.Language.Label | htmlEscape) }}
-      <p class="post-translation mt-4 mb-0 text-sm text-text-secondary dark:text-text-secondary"><i class="fa-solid fa-language" aria-hidden="true"></i> {{ replace (i18n "translationAvailable" (dict "Label" "@@LANG@@")) "@@LANG@@" $link | safeHTML }}</p>
+      <p class="post-translation mt-4 mb-0 text-sm text-text-secondary dark:text-text-secondary">{{ partial "icon.html" (dict "name" "language") }} {{ replace (i18n "translationAvailable" (dict "Label" "@@LANG@@")) "@@LANG@@" $link | safeHTML }}</p>
       {{- end }}
     </header>
 
@@ -41,13 +41,13 @@
     <nav class="post-nav mt-16 grid gap-4 sm:grid-cols-2" aria-label="{{ i18n "blog" }}">
       {{- with $older }}
       <a class="post-nav-link" rel="prev" href="{{ .RelPermalink }}">
-        <span class="post-nav-label"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ i18n "previousPost" }}</span>
+        <span class="post-nav-label">{{ partial "icon.html" (dict "name" "arrow-left") }} {{ i18n "previousPost" }}</span>
         <span class="post-nav-title">{{ .Title }}</span>
       </a>
       {{- else }}<span class="hidden sm:block" aria-hidden="true"></span>{{- end }}
       {{- with $newer }}
       <a class="post-nav-link sm:text-right" rel="next" href="{{ .RelPermalink }}">
-        <span class="post-nav-label sm:justify-end">{{ i18n "nextPost" }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+        <span class="post-nav-label sm:justify-end">{{ i18n "nextPost" }} {{ partial "icon.html" (dict "name" "arrow-right") }}</span>
         <span class="post-nav-title">{{ .Title }}</span>
       </a>
       {{- end }}

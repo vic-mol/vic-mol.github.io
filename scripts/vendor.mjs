@@ -5,7 +5,9 @@
  * rewrites nothing (every output is deterministic and is only written when its bytes change).
  *
  *   1. Fonts       node_modules/@fontsource*  ->  static/fonts/*.woff2, *-OFL.txt, assets/css/fonts.css
- *   2. Font Awesome node_modules/@fortawesome ->  static/vendor/fontawesome/{css,webfonts}, LICENSE.txt
+ *   2. Font Awesome node_modules/@fortawesome ->  assets/icons/fa/{solid,brands}/<name>.svg + LICENSE.txt
+ *                  (only the icons the site uses, found by scanning layouts/, content/ and hugo.toml;
+ *                  layouts/partials/icon.html inlines them, so no Font Awesome font or CSS is shipped)
  *   3. Devicon     `npm pack devicon@2.17.0`  ->  assets/icons/devicon/<devicon_name>-<style>.svg + LICENSE
  *   4. OG font     `npm pack @ibm/plex-sans`  ->  assets/fonts/og/IBMPlexSans-SemiBold.ttf + OFL.txt
  *
@@ -14,7 +16,8 @@
  * written out. Nothing from a tarball is ever executed.
  *
  * Exit code: 0 on success, 1 on any failure (including devicon icons named in
- * content/<lang>/technical.md that do not exist in devicon).
+ * content/<lang>/technical.md that do not exist in devicon, and Font Awesome icon names that
+ * have no SVG in the package).
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -43,6 +46,8 @@ const PLEX = {
     'sha512-WPgvO6Yfj2w5YbhyAr1tv95RUz4LRJlqN+CmYvBglabXteufP1D1E9BABMde+ZIKdRbFJDoKF5eQzfhpnbgZcQ==',
 };
 const FONTAWESOME_VERSION = '6.7.2';
+const FONTAWESOME_PKG = '@fortawesome/fontawesome-free';
+const FONTAWESOME_STYLES = ['solid', 'brands'];
 
 let changed = 0;
 let total = 0;
@@ -201,50 +206,296 @@ function vendorFonts() {
   console.log(`  ${keep.size} woff2 files, ${(woff2Bytes / 1024).toFixed(1)} KB; ${faces.length} @font-face rules`);
 }
 
-/* ------------------------------------------------------------ 2. Font Awesome */
+/* ------------------------------------------------------- 2. Font Awesome icons */
 
-function vendorFontAwesome() {
-  console.log(`Font Awesome Free ${FONTAWESOME_VERSION} -> static/vendor/fontawesome`);
-  const pkg = '@fortawesome/fontawesome-free';
-  const version = pkgVersion(pkg);
-  if (version !== FONTAWESOME_VERSION) throw new Error(`${pkg} is ${version}, expected ${FONTAWESOME_VERSION}`);
+/**
+ * Icons are inlined as SVG by layouts/partials/icon.html (no webfont, no stylesheet). Only the icons the
+ * site uses are copied, from node_modules/@fortawesome/fontawesome-free/svgs/{solid,brands}/, to
+ * assets/icons/fa/<style>/<name>.svg. "Used" is decided by scanning, deterministically:
+ *   - literal   partial "icon.html" (dict ... "name" "<n>" ... "style" "<s>")   calls in layouts/**;
+ *   - the names that templates take from data, listed in DYNAMIC_ICON_CALLS below:
+ *       `icon:` in the front matter of content/<lang>/about.md (quick facts) and skills.md (domains),
+ *       `icon` of [[params.social]] in hugo.toml (always the brands set), and
+ *       `icon:` in content/<lang>/technical.md (the fallback when a skill has no devicon file; style
+ *       "auto": the brands set for the names in the $brandIcons list of layouts/partials/icon.html,
+ *       which is read from there so the template and this script cannot disagree).
+ * A name without a Font Awesome SVG fails the run (exit 1) and the list is printed.
+ */
 
-  const outDir = at('static', 'vendor', 'fontawesome');
-  const cssFiles = ['fontawesome.min.css', 'solid.min.css', 'brands.min.css'];
-  const webfonts = ['fa-solid-900.woff2', 'fa-brands-400.woff2'];
+/** Template expressions that carry a name from data. A new one must be added here, with its data source. */
+const DYNAMIC_ICON_CALLS = [
+  { expr: '$fact.icon', style: 'solid', source: 'about' },
+  { expr: '$domain.icon', style: 'solid', source: 'skills' },
+  { expr: '.icon', style: 'brands', source: 'social' },
+  { expr: '$skill.icon', style: 'auto', source: 'technical' },
+];
 
-  // Only the woff2 files are vendored, so the "truetype" fallback in solid/brands would 404 if a browser asked for it.
-  // Drop exactly that fallback source and leave the rest of the CSS byte-for-byte as shipped.
-  const ttfFallback = /,url\(\.\.\/webfonts\/[\w-]+\.ttf\) format\("truetype"\)/g;
-  const expectedStrips = { 'fontawesome.min.css': 0, 'solid.min.css': 1, 'brands.min.css': 1 };
+const ICON_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-  for (const name of cssFiles) {
-    let css = readPkgFile(pkg, 'css', name).toString('utf8');
-    const strips = (css.match(ttfFallback) ?? []).length;
-    if (strips !== expectedStrips[name]) {
-      throw new Error(`${name}: found ${strips} ttf fallback sources, expected ${expectedStrips[name]}`);
+function listFiles(dir, ext) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...listFiles(full, ext));
+    else if (entry.name.endsWith(ext)) out.push(full);
+  }
+  return out;
+}
+
+/** Reads the one `$brandIcons := slice "a" "b" ...` line from layouts/partials/icon.html. */
+function brandIconNames() {
+  const file = at('layouts', 'partials', 'icon.html');
+  const text = fs.readFileSync(file, 'utf8');
+  const m = /\$brandIcons\s*:=\s*slice((?:\s+"[a-z0-9-]+")+)\s*-?\}\}/.exec(text);
+  if (!m) throw new Error(`${show(file)}: cannot find the line {{ $brandIcons := slice "name" ... }}`);
+  return [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
+}
+
+/** Splits the inside of a Go-template parenthesis group into top-level tokens: { lit } for strings, { expr } for the rest. */
+function tokenizeGroup(src) {
+  const tokens = [];
+  let i = 0;
+  while (i < src.length) {
+    const c = src[i];
+    if (/\s/.test(c)) {
+      i += 1;
+    } else if (c === '"') {
+      let j = i + 1;
+      let value = '';
+      while (j < src.length && src[j] !== '"') {
+        if (src[j] === '\\') j += 1;
+        value += src[j];
+        j += 1;
+      }
+      if (j >= src.length) throw new Error(`unterminated string in: ${src}`);
+      tokens.push({ lit: value });
+      i = j + 1;
+    } else if (c === '`') {
+      const j = src.indexOf('`', i + 1);
+      if (j < 0) throw new Error(`unterminated raw string in: ${src}`);
+      tokens.push({ lit: src.slice(i + 1, j) });
+      i = j + 1;
+    } else if (c === '(') {
+      let depth = 0;
+      let j = i;
+      for (; j < src.length; j += 1) {
+        if (src[j] === '"') {
+          j += 1;
+          while (j < src.length && src[j] !== '"') j += src[j] === '\\' ? 2 : 1;
+        } else if (src[j] === '(') depth += 1;
+        else if (src[j] === ')' && --depth === 0) break;
+      }
+      if (j >= src.length) throw new Error(`unbalanced parenthesis in: ${src}`);
+      tokens.push({ expr: src.slice(i, j + 1) });
+      i = j + 1;
+    } else {
+      let j = i;
+      while (j < src.length && !/\s/.test(src[j])) j += 1;
+      tokens.push({ expr: src.slice(i, j) });
+      i = j;
     }
-    css = css.replace(ttfFallback, '');
-    writeIfChanged(path.join(outDir, 'css', name), css);
+  }
+  return tokens;
+}
 
-    // Every url() left in the CSS must resolve to a file we vendor.
-    for (const m of css.matchAll(/url\(([^)]+)\)/g)) {
-      const ref = m[1].replace(/^['"]|['"]$/g, '');
-      const target = path.resolve(outDir, 'css', ref);
-      if (!webfonts.includes(path.basename(target)) || path.dirname(target) !== path.join(outDir, 'webfonts')) {
-        throw new Error(`${name}: url(${ref}) does not point at a vendored webfont`);
+/** Calls of the icon partial in one template: [{ name?: string, expr?: string, style: string, line: number }]. */
+function iconCallsIn(file) {
+  // Template and HTML comments (the usage notes in icon.html itself) are blanked out, keeping line numbers.
+  const blank = (s) => s.replace(/[^\n]/g, ' ');
+  const text = fs
+    .readFileSync(file, 'utf8')
+    .replace(/\{\{-?\s*\/\*[\s\S]*?\*\/\s*-?\}\}/g, blank)
+    .replace(/<!--[\s\S]*?-->/g, blank);
+  const lineAt = (index) => text.slice(0, index).split('\n').length;
+  const where = (index) => `${show(file)}:${lineAt(index)}`;
+  if (/partialCached\s+"icon\.html"/.test(text)) {
+    throw new Error(`${show(file)}: partialCached "icon.html" is not supported; use partial "icon.html" (dict ...)`);
+  }
+
+  const calls = [];
+  for (const m of text.matchAll(/\bpartial\s+"icon\.html"/g)) {
+    // The argument must be a parenthesised (dict ...) so every key and value can be read here.
+    let i = m.index + m[0].length;
+    while (/\s/.test(text[i])) i += 1;
+    if (text[i] !== '(') throw new Error(`${where(m.index)}: partial "icon.html" must be called with (dict ...) in parentheses`);
+    let depth = 0;
+    let j = i;
+    for (; j < text.length; j += 1) {
+      if (text[j] === '"') {
+        j += 1;
+        while (j < text.length && text[j] !== '"') j += text[j] === '\\' ? 2 : 1;
+      } else if (text[j] === '(') depth += 1;
+      else if (text[j] === ')' && --depth === 0) break;
+    }
+    if (j >= text.length) throw new Error(`${where(m.index)}: unbalanced parenthesis after partial "icon.html"`);
+
+    const tokens = tokenizeGroup(text.slice(i + 1, j));
+    if (tokens[0]?.expr !== 'dict') throw new Error(`${where(m.index)}: partial "icon.html" must be called with (dict ...)`);
+    const pairs = tokens.slice(1);
+    if (pairs.length % 2 !== 0) throw new Error(`${where(m.index)}: dict has an odd number of arguments`);
+    const args = {};
+    for (let k = 0; k < pairs.length; k += 2) {
+      if (!('lit' in pairs[k])) throw new Error(`${where(m.index)}: dict keys must be string literals`);
+      args[pairs[k].lit] = pairs[k + 1];
+    }
+    const nameTok = args.name;
+    if (!nameTok) throw new Error(`${where(m.index)}: partial "icon.html" has no "name"`);
+    const styleTok = args.style ?? { lit: 'solid' };
+    if (!('lit' in styleTok)) throw new Error(`${where(m.index)}: "style" must be a string literal ("solid", "brands" or "auto")`);
+    if (!['solid', 'brands', 'auto'].includes(styleTok.lit)) {
+      throw new Error(`${where(m.index)}: unknown style "${styleTok.lit}" (use solid, brands or auto)`);
+    }
+    calls.push({
+      ...('lit' in nameTok ? { name: nameTok.lit } : { expr: nameTok.expr }),
+      style: styleTok.lit,
+      at: where(m.index),
+    });
+  }
+  return calls;
+}
+
+/** Front matter lines of a content file, without comment lines. */
+function frontMatterLines(file) {
+  const text = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const fm = /^---\n([\s\S]*?)\n---(?:\n|$)/.exec(text);
+  if (!fm) throw new Error(`${show(file)}: no YAML front matter`);
+  return fm[1].split('\n').filter((l) => !l.trim().startsWith('#'));
+}
+
+/** Every `icon: <value>` key in the front matter (block list entries and one-line { ... } mappings). */
+function frontMatterIcons(file) {
+  const names = [];
+  for (const line of frontMatterLines(file)) {
+    for (const m of line.matchAll(/(?:^|[\s{,])icon\s*:\s*(?:"([^"]*)"|'([^']*)'|([\w-]+))/g)) names.push(m[1] ?? m[2] ?? m[3]);
+  }
+  return names;
+}
+
+/** `icon = "<name>"` under [[params.social]] in hugo.toml. */
+function socialIcons() {
+  const file = at('hugo.toml');
+  const names = [];
+  let table = '';
+  for (const line of fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n').split('\n')) {
+    const header = /^\s*(\[\[?[^\]]+\]\]?)\s*(?:#.*)?$/.exec(line);
+    if (header) {
+      table = header[1];
+      continue;
+    }
+    const m = /^\s*icon\s*=\s*"([^"]*)"/.exec(line);
+    if (!m) continue;
+    if (!/^\[\[(?:languages\.\w+\.)?params\.social\]\]$/.test(table)) {
+      throw new Error(`${show(file)}: unexpected icon = "${m[1]}" under ${table || 'the top level'}; only [[params.social]] icons are vendored`);
+    }
+    names.push(m[1]);
+  }
+  return names;
+}
+
+/** Map("style/name" -> Set(where it is used)) for every Font Awesome icon the site needs. */
+function requiredFontAwesomeIcons() {
+  const needed = new Map();
+  const brands = brandIconNames();
+  const add = (style, name, source) => {
+    if (style === 'auto') style = brands.includes(name) ? 'brands' : 'solid';
+    if (!ICON_NAME.test(name)) throw new Error(`${source}: "${name}" is not a Font Awesome icon name (lowercase letters, digits and hyphens, no "fa-" prefix)`);
+    const key = `${style}/${name}`;
+    if (!needed.has(key)) needed.set(key, new Set());
+    needed.get(key).add(source);
+  };
+
+  // 1. Templates.
+  for (const file of listFiles(at('layouts'), '.html')) {
+    for (const call of iconCallsIn(file)) {
+      if (call.name !== undefined) {
+        add(call.style, call.name, call.at);
+      } else {
+        if (!DYNAMIC_ICON_CALLS.some((d) => d.expr === call.expr && d.style === call.style)) {
+          throw new Error(
+            `${call.at}: "name" is the expression ${call.expr} (style "${call.style}"); add it to DYNAMIC_ICON_CALLS in scripts/vendor.mjs ` +
+              'with the data file that holds the names, or use a string literal',
+          );
+        }
       }
     }
   }
-  for (const name of webfonts) {
-    writeIfChanged(path.join(outDir, 'webfonts', name), readPkgFile(pkg, 'webfonts', name));
-  }
-  writeIfChanged(path.join(outDir, 'LICENSE.txt'), readPkgFile(pkg, 'LICENSE.txt'));
-  writeIfChanged(at('LICENSES', 'FontAwesomeFree-License.txt'), readPkgFile(pkg, 'LICENSE.txt'));
 
-  prune(path.join(outDir, 'css'), new Set(cssFiles), () => true);
-  prune(path.join(outDir, 'webfonts'), new Set(webfonts), () => true);
-  console.log(`  ${cssFiles.length} css files (ttf fallback removed from solid and brands), ${webfonts.length} woff2 files`);
+  // 2. Names that come from data. Scanned whether or not a template currently uses them.
+  const contentDir = at('content');
+  const langs = fs.readdirSync(contentDir).filter((n) => fs.statSync(path.join(contentDir, n)).isDirectory());
+  const bySource = { about: 'solid', skills: 'solid', technical: 'auto' };
+  for (const [source, style] of Object.entries(bySource)) {
+    let found = 0;
+    for (const lang of langs) {
+      const file = path.join(contentDir, lang, `${source}.md`);
+      if (!fs.existsSync(file)) continue;
+      for (const name of frontMatterIcons(file)) {
+        add(style, name, show(file));
+        found += 1;
+      }
+    }
+    if (found === 0) throw new Error(`no icon: values found in content/*/${source}.md`);
+  }
+  for (const name of socialIcons()) add('brands', name, 'hugo.toml');
+
+  return needed;
+}
+
+function vendorFontAwesome() {
+  console.log(`Font Awesome Free ${FONTAWESOME_VERSION} icons -> assets/icons/fa`);
+  const version = pkgVersion(FONTAWESOME_PKG);
+  if (version !== FONTAWESOME_VERSION) throw new Error(`${FONTAWESOME_PKG} is ${version}, expected ${FONTAWESOME_VERSION}`);
+
+  const needed = requiredFontAwesomeIcons();
+  const keys = [...needed.keys()].sort();
+  const icons = new Map();
+  const missing = [];
+  for (const key of keys) {
+    const [style, name] = key.split('/');
+    const file = at('node_modules', FONTAWESOME_PKG, 'svgs', style, `${name}.svg`);
+    if (!fs.existsSync(file)) {
+      missing.push(key);
+      console.log(`  MISSING ${key}.svg  (used in: ${[...needed.get(key)].sort().join(', ')})`);
+      continue;
+    }
+    const svg = fs.readFileSync(file);
+    const text = svg.toString('utf8');
+    if (!/^<svg[\s>]/.test(text) || !/viewBox="[^"]+"/.test(text) || /<script|\son[a-z]+\s*=|javascript:/i.test(text)) {
+      throw new Error(`${key}.svg looks unsafe or is not an SVG with a viewBox`);
+    }
+    if (!text.includes(`Font Awesome Free ${FONTAWESOME_VERSION}`)) throw new Error(`${key}.svg is not from Font Awesome Free ${FONTAWESOME_VERSION}`);
+    icons.set(key, svg);
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `${missing.length} Font Awesome icon(s) have no SVG in ${FONTAWESOME_PKG}@${version} (solid or brands): ${missing.join(', ')}. ` +
+        'Fix the name (FA 6 free icons only, no "fa-" prefix, aliases such as check-circle need their canonical name circle-check) ' +
+        'or the style. For technical.md the brands set is the $brandIcons list in layouts/partials/icon.html.',
+    );
+  }
+
+  const outDir = at('assets', 'icons', 'fa');
+  for (const [key, svg] of icons) writeIfChanged(path.join(outDir, `${key}.svg`), svg);
+  for (const style of FONTAWESOME_STYLES) {
+    const keep = new Set([...icons.keys()].filter((k) => k.startsWith(`${style}/`)).map((k) => `${k.slice(style.length + 1)}.svg`));
+    prune(path.join(outDir, style), keep, (n) => n.endsWith('.svg'));
+  }
+
+  // The package license covers fonts, code and icons; only the SVG icons (CC BY 4.0) are used here.
+  const note =
+    `This project ships only the Font Awesome Free ${FONTAWESOME_VERSION} SVG icons, which are licensed under\n` +
+    'CC BY 4.0 (see "Icons" below). They are vendored in assets/icons/fa/{solid,brands}/ by\n' +
+    'scripts/vendor.mjs and inlined into the HTML by layouts/partials/icon.html. No Font Awesome font\n' +
+    'files, stylesheets or scripts are shipped, so the SIL OFL (fonts) and MIT (code) sections do not\n' +
+    'apply to anything published. The attribution comment inside each SVG file is kept in the repository.\n' +
+    'The text below is the license file of the package, unchanged.\n' +
+    `${'-'.repeat(80)}\n\n`;
+  const license = Buffer.concat([Buffer.from(note, 'utf8'), readPkgFile(FONTAWESOME_PKG, 'LICENSE.txt')]);
+  writeIfChanged(path.join(outDir, 'LICENSE.txt'), license);
+  writeIfChanged(at('LICENSES', 'FontAwesomeFree-License.txt'), license);
+
+  const solid = keys.filter((k) => k.startsWith('solid/')).length;
+  console.log(`  ${icons.size} icons (${solid} solid, ${icons.size - solid} brands) + LICENSE.txt`);
 }
 
 /* --------------------------------------------------------- tarball plumbing */

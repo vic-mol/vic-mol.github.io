@@ -44,18 +44,18 @@
 
       <ul class="site-social">
         {{- range site.Params.social }}
-        <li><a class="icon-btn" href="{{ .url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ .label | default .icon }} {{ i18n "opensInNewTab" }}"><i class="fa-brands fa-{{ .icon }}" aria-hidden="true"></i></a></li>
+        <li><a class="icon-btn" href="{{ .url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ .label | default .icon }} {{ i18n "opensInNewTab" }}">{{ partial "icon.html" (dict "name" .icon "style" "brands") }}</a></li>
         {{- end }}
       </ul>
 
       <button id="theme-toggle" type="button" class="icon-btn theme-toggle" aria-pressed="false" aria-label="{{ i18n "themeToggle" }}">
-        <i class="fa-solid fa-moon theme-toggle__moon" aria-hidden="true"></i>
-        <i class="fa-solid fa-sun theme-toggle__sun" aria-hidden="true"></i>
+        {{ partial "icon.html" (dict "name" "moon" "class" "theme-toggle__moon") }}
+        {{ partial "icon.html" (dict "name" "sun" "class" "theme-toggle__sun") }}
       </button>
 
       <button id="menu-btn" type="button" class="icon-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="{{ i18n "openMenu" }}" data-label-open="{{ i18n "openMenu" }}" data-label-close="{{ i18n "closeMenu" }}">
-        <i class="fa-solid fa-bars menu-icon-open" aria-hidden="true"></i>
-        <i class="fa-solid fa-xmark menu-icon-close" aria-hidden="true"></i>
+        {{ partial "icon.html" (dict "name" "bars" "class" "menu-icon-open") }}
+        {{ partial "icon.html" (dict "name" "xmark" "class" "menu-icon-close") }}
       </button>
     </div>
   </div>
@@ -68,7 +68,7 @@
     </ul>
     <ul class="mobile-menu__social">
       {{- range site.Params.social }}
-      <li><a class="icon-btn" href="{{ .url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ .label | default .icon }} {{ i18n "opensInNewTab" }}"><i class="fa-brands fa-{{ .icon }}" aria-hidden="true"></i></a></li>
+      <li><a class="icon-btn" href="{{ .url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ .label | default .icon }} {{ i18n "opensInNewTab" }}">{{ partial "icon.html" (dict "name" .icon "style" "brands") }}</a></li>
       {{- end }}
     </ul>
   </div>

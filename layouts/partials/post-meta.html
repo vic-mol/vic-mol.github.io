@@ -11,13 +11,13 @@
 <div class="post-meta flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-text-muted dark:text-text-muted">
   <p class="m-0 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono">
     <span class="inline-flex items-center gap-2">
-      <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      {{ partial "icon.html" (dict "name" "calendar-days") }}
       {{ if .label }}<span class="sr-only">{{ i18n "publishedOn" }}</span>{{ end -}}
       <time datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date | time.Format ":date_long" }}</time>
     </span>
     {{- if $p.ReadingTime }}
     <span class="inline-flex items-center gap-2">
-      <i class="fa-solid fa-clock" aria-hidden="true"></i>
+      {{ partial "icon.html" (dict "name" "clock") }}
       <span>{{ i18n "readingTime" $p.ReadingTime }}</span>
     </span>
     {{- end }}

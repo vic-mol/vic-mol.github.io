@@ -27,25 +27,25 @@
       <dl class="contact-list flex-1 min-w-0">
         {{- if $contact.email_rb64 }}
         <div class="contact-row contact-row--email">
-          <dt><i class="fa-solid fa-envelope" aria-hidden="true"></i><span>{{ i18n "emailLabel" }}</span></dt>
+          <dt>{{ partial "icon.html" (dict "name" "envelope") }}<span>{{ i18n "emailLabel" }}</span></dt>
           <dd>{{ partial "contact-link.html" (dict "page" $ "kind" "email" "class" "contact-link" "nojs" true) }}</dd>
         </div>
         {{- end }}
         {{- if $contact.phone_tel_rb64 }}
         <div class="contact-row contact-row--phone">
-          <dt><i class="fa-solid fa-phone" aria-hidden="true"></i><span>{{ i18n "phoneLabel" }}</span></dt>
+          <dt>{{ partial "icon.html" (dict "name" "phone") }}<span>{{ i18n "phoneLabel" }}</span></dt>
           <dd>{{ partial "contact-link.html" (dict "page" $ "kind" "phone" "class" "contact-link") }}</dd>
         </div>
         {{- end }}
         {{- with site.Params.linkedin_url }}
         <div class="contact-row contact-row--linkedin">
-          <dt><i class="fa-brands fa-linkedin-in" aria-hidden="true"></i><span>{{ i18n "linkedinLabel" }}</span></dt>
+          <dt>{{ partial "icon.html" (dict "name" "linkedin-in" "style" "brands") }}<span>{{ i18n "linkedinLabel" }}</span></dt>
           <dd><a class="contact-link" href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ site.Params.linkedin_text | default . }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></a></dd>
         </div>
         {{- end }}
         {{- with site.Params.hero_location }}
         <div class="contact-row contact-row--location">
-          <dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ i18n "locationLabel" }}</span></dt>
+          <dt>{{ partial "icon.html" (dict "name" "location-dot") }}<span>{{ i18n "locationLabel" }}</span></dt>
           <dd>{{ . }}</dd>
         </div>
         {{- end }}
