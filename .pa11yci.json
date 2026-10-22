@@ -2,6 +2,7 @@
   "defaults": {
     "runners": ["axe"],
     "standard": "WCAG2AA",
+    "levelCapWhenNeedsReview": "warning",
     "chromeLaunchConfig": { "args": ["--no-sandbox"] }
   },
   "urls": [
