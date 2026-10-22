@@ -1,0 +1,48 @@
+{{- /*
+  Pagination for a list that already called .Paginate (posts/list.html, _default/term.html).
+  Prints nothing when everything fits on one page. Page size: [pagination] pagerSize in hugo.toml (10).
+  Adapted from hugo-mana-theme (c) 2024 Livour, MIT.
+  The translated "Page X of Y" names every link; the arrows and numbers are the visible labels.
+*/ -}}
+{{- with .Paginator }}
+{{- if gt .TotalPages 1 }}
+{{- $current := .PageNumber -}}
+{{- $total := .TotalPages -}}
+<nav class="pagination mt-12 flex flex-col items-center gap-3" aria-label="{{ i18n "allPosts" }}">
+  <ul class="m-0 flex list-none flex-wrap items-center justify-center gap-2 p-0" role="list">
+    <li>
+      {{- if .HasPrev }}
+      <a class="page-link" rel="prev" href="{{ .Prev.URL }}" aria-label="{{ i18n "pageOf" (dict "Current" .Prev.PageNumber "Total" $total) }}">{{ partial "icon.html" (dict "name" "chevron-left") }}</a>
+      {{- else }}
+      <span class="page-link page-link-disabled" aria-hidden="true">{{ partial "icon.html" (dict "name" "chevron-left") }}</span>
+      {{- end }}
+    </li>
+    {{- $last := 0 }}
+    {{- range .Pagers }}
+    {{- $n := .PageNumber }}
+    {{- if or (eq $n 1) (eq $n $total) (and (ge $n (sub $current 1)) (le $n (add $current 1))) }}
+    {{- if gt (sub $n $last) 1 }}
+    <li aria-hidden="true" class="px-1 text-text-muted dark:text-text-muted">…</li>
+    {{- end }}
+    <li>
+      {{- if eq $n $current }}
+      <span class="page-link page-link-current" aria-current="page" aria-label="{{ i18n "pageOf" (dict "Current" $n "Total" $total) }}">{{ $n }}</span>
+      {{- else }}
+      <a class="page-link" href="{{ .URL }}" aria-label="{{ i18n "pageOf" (dict "Current" $n "Total" $total) }}">{{ $n }}</a>
+      {{- end }}
+    </li>
+    {{- $last = $n }}
+    {{- end }}
+    {{- end }}
+    <li>
+      {{- if .HasNext }}
+      <a class="page-link" rel="next" href="{{ .Next.URL }}" aria-label="{{ i18n "pageOf" (dict "Current" .Next.PageNumber "Total" $total) }}">{{ partial "icon.html" (dict "name" "chevron-right") }}</a>
+      {{- else }}
+      <span class="page-link page-link-disabled" aria-hidden="true">{{ partial "icon.html" (dict "name" "chevron-right") }}</span>
+      {{- end }}
+    </li>
+  </ul>
+  <p class="m-0 text-sm font-mono text-text-muted dark:text-text-muted">{{ i18n "pageOf" (dict "Current" $current "Total" $total) }}</p>
+</nav>
+{{- end }}
+{{- end }}

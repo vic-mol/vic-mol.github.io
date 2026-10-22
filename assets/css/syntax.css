@@ -1,0 +1,52 @@
+/* Syntax highlighting (Chroma classes; markup.highlight.noClasses = false, line numbers off).
+   Generated with:  hugo gen chromastyles --style=github   (light)
+                    hugo gen chromastyles --style=github-dark   (dark; every selector scoped under .dark)
+   Rules with identical declarations are merged and the line-number helpers are dropped to keep the bundle small. */
+
+.bg { background-color:#f7f7f7 }
+.chroma { background-color:#f7f7f7; -webkit-text-size-adjust:none }
+.chroma .err { color:#f6f8fa; background-color:#82071e }
+.chroma .hl { background-color:#dedede }
+.chroma .line { display:flex }
+.chroma .k, .chroma .kc, .chroma .kd, .chroma .kn, .chroma .kp, .chroma .kr, .chroma .kt { color:#cf222e }
+.chroma .na, .chroma .nc, .chroma .nx, .chroma .p, .chroma .ge, .chroma .go { color:#1f2328 }
+.chroma .no, .chroma .nd, .chroma .nt, .chroma .m, .chroma .mb, .chroma .mf, .chroma .mh, .chroma .mi, .chroma .il, .chroma .mo, .chroma .o, .chroma .ow, .chroma .or { color:#0550ae }
+.chroma .ni, .chroma .nb, .chroma .nf, .chroma .fm { color:#6639ba }
+.chroma .nl { color:#900; font-weight:bold }
+.chroma .nn { color:#24292e }
+.chroma .bp { color:#6a737d }
+.chroma .nv, .chroma .vc, .chroma .vg, .chroma .vi, .chroma .vm { color:#953800 }
+.chroma .s, .chroma .sa, .chroma .sb, .chroma .sc, .chroma .dl, .chroma .sd, .chroma .s2, .chroma .se, .chroma .sh, .chroma .si, .chroma .sx, .chroma .sr, .chroma .s1 { color:#0a3069 }
+.chroma .ss { color:#032f62 }
+.chroma .c, .chroma .ch, .chroma .cm, .chroma .c1, .chroma .cs, .chroma .cp, .chroma .cpf { color:#57606a }
+.chroma .gd { color:#82071e; background-color:#ffebe9 }
+.chroma .gi { color:#116329; background-color:#dafbe1 }
+.chroma .gl { text-decoration:underline }
+.chroma .w { color:#fff }
+
+/* ---- dark ---- */
+.dark .bg { color:#e6edf3; background-color:#0d1117 }
+.dark .chroma { color:#e6edf3; background-color:#0d1117; -webkit-text-size-adjust:none }
+.dark .chroma .err { color:#f85149 }
+.dark .chroma .hl { background-color:#6e7681 }
+.dark .chroma .line { display:flex }
+.dark .chroma .k, .dark .chroma .kd, .dark .chroma .kn, .dark .chroma .kr, .dark .chroma .kt, .dark .chroma .nn, .dark .chroma .gt { color:#ff7b72 }
+.dark .chroma .kc, .dark .chroma .kp, .dark .chroma .py, .dark .chroma .nv, .dark .chroma .vc, .dark .chroma .vg, .dark .chroma .vi, .dark .chroma .vm, .dark .chroma .ld, .dark .chroma .sa, .dark .chroma .dl, .dark .chroma .se, .dark .chroma .sh, .dark .chroma .sr, .dark .chroma .gu { color:#79c0ff }
+.dark .chroma .nc, .dark .chroma .ne { color:#f0883e; font-weight:bold }
+.dark .chroma .no, .dark .chroma .nl, .dark .chroma .gh { color:#79c0ff; font-weight:bold }
+.dark .chroma .nd, .dark .chroma .nf, .dark .chroma .fm { color:#d2a8ff; font-weight:bold }
+.dark .chroma .ni { color:#ffa657 }
+.dark .chroma .nx { color:#e6edf3 }
+.dark .chroma .nt { color:#7ee787 }
+.dark .chroma .l, .dark .chroma .s, .dark .chroma .sb, .dark .chroma .sc, .dark .chroma .sd, .dark .chroma .s2, .dark .chroma .si, .dark .chroma .sx, .dark .chroma .s1, .dark .chroma .ss, .dark .chroma .m, .dark .chroma .mb, .dark .chroma .mf, .dark .chroma .mh, .dark .chroma .mi, .dark .chroma .il, .dark .chroma .mo { color:#a5d6ff }
+.dark .chroma .o, .dark .chroma .ow, .dark .chroma .or { color:#ff7b72; font-weight:bold }
+.dark .chroma .c, .dark .chroma .ch, .dark .chroma .cm, .dark .chroma .c1 { color:#8b949e; font-style:italic }
+.dark .chroma .cs, .dark .chroma .cp, .dark .chroma .cpf { color:#8b949e; font-weight:bold; font-style:italic }
+.dark .chroma .gd { color:#ffa198; background-color:#490202 }
+.dark .chroma .ge { font-style:italic }
+.dark .chroma .gr { color:#ffa198 }
+.dark .chroma .gi { color:#56d364; background-color:#0f5323 }
+.dark .chroma .go, .dark .chroma .gp { color:#8b949e }
+.dark .chroma .gs { font-weight:bold }
+.dark .chroma .gl { text-decoration:underline }
+.dark .chroma .w { color:#6e7681 }

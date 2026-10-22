@@ -1,0 +1,71 @@
+{{- /*
+  photo-gallery: {{< photo-gallery set="sf-2026" >}}   (PLAN 7.4)
+
+  Collects every key of data/images.yaml whose `set` equals the parameter, ordered by `weight`, and
+  renders a <ul role="list"> grid (2 columns under 640 px, 3 from 640 px up) of <figure>s: a 4:3 thumbnail
+  (img.html, widths 400/800, lazy) that links to a WebP of the original no larger than 1600 px on its
+  long edge, plus the caption (current language) in a <figcaption>. No lightbox: the link opens the large
+  image. No `set` match -> the translated "noItemsYet" message.
+
+  Alt text and captions come from data/images.yaml (through img.html), never from file names.
+
+  Crop anchors: data/images.yaml has no anchor field, so the two photos whose subject is not where the
+  smart crop looks are pinned in $anchors below, keyed by asset path (sun flare at the top of the Bay
+  Bridge shot -> keep the bottom; the pyramid's tip -> keep the top). Everything else crops "Smart".
+
+  The large version is `Fit "1600x1600 webp"`: it fits the picture inside 1600x1600 and never enlarges,
+  because the portrait masters (1126 px wide) are narrower than 1600.
+*/ -}}
+{{- $set := cond .IsNamedParams (.Get "set") (.Get 0) -}}
+{{- if not $set }}{{ errorf "photo-gallery: the 'set' parameter is required, e.g. set=\"sf-2026\", the set name used in data/images.yaml (%s)" .Position }}
+{{- else -}}
+{{- $page := .Page -}}
+{{- $lang := $page.Language.Lang -}}
+{{- $anchors := dict
+      "images/gallery/sf-bay-bridge-morning.jpg" "Bottom"
+      "images/gallery/sf-transamerica-pyramid.jpg" "Top" -}}
+
+{{- $items := slice -}}
+{{- range $key, $entry := (hugo.Data.images | default dict) -}}
+  {{- if eq ($entry.set | default "") $set -}}
+    {{- $items = $items | append (dict "key" $key "weight" ($entry.weight | default 0) "entry" $entry) -}}
+  {{- end -}}
+{{- end -}}
+{{- $items = sort (sort $items "key") "weight" -}}
+
+{{- if not $items -}}
+<p class="not-prose text-text-muted italic">{{ i18n "noItemsYet" }}</p>
+{{- else -}}
+<ul role="list" class="photo-gallery not-prose grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 list-none p-0 my-8">
+  {{- range $items -}}
+  {{- $key := .key -}}
+  {{- $res := resources.Get $key -}}
+  {{- if not $res }}{{ errorf "photo-gallery: data/images.yaml lists %q (set %q) but assets/%s does not exist" $key $set $key }}
+  {{- else if not (reflect.IsImageResourceProcessable $res) }}{{ errorf "photo-gallery: %q (set %q) is not a raster image the site can process" $key $set }}
+  {{- else -}}
+  {{- $large := $res.Fit "1600x1600 webp" -}}
+  {{- $caption := "" -}}
+  {{- with .entry.caption }}{{ $caption = index . $lang | default "" }}{{ end }}
+  <li class="m-0 p-0">
+    <figure class="m-0">
+      <a href="{{ $large.RelPermalink }}" class="group block overflow-hidden rounded-lg">
+        {{- partial "img.html" (dict
+              "page" $page
+              "src" $key
+              "widths" (slice 400 800)
+              "sizes" "(min-width: 640px) 33vw, 50vw"
+              "ratio" "4:3"
+              "anchor" (index $anchors $key | default "Smart")
+              "loading" "lazy"
+              "class" "block w-full h-auto transition-transform duration-300 motion-safe:group-hover:scale-105") -}}
+      </a>
+      {{- with $caption }}
+      <figcaption class="mt-2 text-sm text-text-muted">{{ . }}</figcaption>
+      {{- end }}
+    </figure>
+  </li>
+  {{- end -}}
+  {{- end }}
+</ul>
+{{- end -}}
+{{- end -}}

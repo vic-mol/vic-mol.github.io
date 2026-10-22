@@ -1,0 +1,15 @@
+{{- /*
+  Home page. Overrides the CareerCanvas index.html.
+  Order (PLAN 3): hero, about, skills, experience, selected projects, tech stack, contact.
+  Differences from the theme: testimonials are gone, and "projects-featured" is new. "skills" is the
+  theme's own partial (not overridden); the other six partials live in layouts/partials/.
+*/ -}}
+{{ define "main" }}
+{{ partial "hero.html" . }}
+{{ partial "about.html" . }}
+{{ partial "skills.html" . }}
+{{ partial "experience.html" . }}
+{{ partial "projects-featured.html" . }}
+{{ partial "technical.html" . }}
+{{ partial "contact.html" . }}
+{{ end }}

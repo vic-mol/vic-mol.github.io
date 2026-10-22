@@ -1,0 +1,7 @@
+{{- /*
+  Returns true when the current language has at least one published post (non-draft, not in the future).
+  Used by the header (Blog link) and the footer (RSS link); no front-matter or config switch is involved,
+  so the first Markdown file in content/<lang>/posts/ turns both on.
+  Usage: {{ if partial "has-posts.html" . }}…{{ end }}
+*/ -}}
+{{- return (gt (len (where site.RegularPages "Section" "posts")) 0) -}}

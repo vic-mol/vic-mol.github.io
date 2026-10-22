@@ -1,0 +1,66 @@
+{{- /*
+  Selected projects on the home page (new partial, PLAN 3 and 6.3).
+  Up to three pages of the "projects" section with `featured: true`, ordered by weight, shown as cards
+  like the theme's project grid, followed by a link to the full list.
+  Card: cover (featured_image, an SVG under assets/, through img.html as a decorative image), badge from
+  `kind` ("case-study" -> caseStudy, anything else -> personalProject), title (the link; the whole card
+  is clickable through .featured-card__link::after), description, first four stack items.
+  A cover that does not exist yet does not fail the build: the card shows an icon instead.
+  The section is left out entirely when no project is featured.
+*/ -}}
+{{- $featured := where (where site.RegularPages "Section" "projects") "Params.featured" true -}}
+{{- $featured = first 3 $featured.ByWeight -}}
+{{- with $featured -}}
+<section id="projects" class="py-12 bg-bg-secondary dark:bg-bg-secondary border-t border-border-primary" data-animate>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl font-bold text-center mb-4 font-heading text-text-primary dark:text-text-primary">{{ i18n "featuredProjects" }}</h2>
+    {{- with site.GetPage "/projects" }}{{ with .Description }}
+    <p class="text-lg text-center mb-12 text-text-secondary dark:text-text-tertiary italic">{{ . }}</p>
+    {{- end }}{{ end }}
+
+    <ul class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 p-0 m-0" role="list">
+      {{- range . }}
+      {{- $project := . }}
+      <li class="flex">
+        <article class="featured-card relative flex flex-col w-full bg-bg dark:bg-bg rounded-xl shadow-md border border-border-primary dark:border-border-primary overflow-hidden">
+          {{- $cover := $project.Params.featured_image }}
+          {{- if and $cover (resources.Get $cover) }}
+          <div class="featured-card__cover">
+            {{- partial "img.html" (dict "page" $project "src" $cover "decorative" true "class" "featured-card__img") }}
+          </div>
+          {{- else }}
+          <div class="featured-card__cover featured-card__cover--empty" aria-hidden="true">
+            {{ partial "icon.html" (dict "name" "diagram-project") }}
+          </div>
+          {{- end }}
+          <div class="flex flex-col flex-1 p-6">
+            <p class="featured-card__badge featured-card__badge--{{ if eq $project.Params.kind "case-study" }}case{{ else }}personal{{ end }}">
+              {{- if eq $project.Params.kind "case-study" }}{{ i18n "caseStudy" }}{{ else }}{{ i18n "personalProject" }}{{ end -}}
+            </p>
+            <h3 class="text-xl font-heading font-semibold mb-3 text-text-primary dark:text-text-primary">
+              <a href="{{ $project.RelPermalink }}" class="featured-card__link">{{ $project.Title }}</a>
+            </h3>
+            {{- with $project.Description }}
+            <p class="text-text-secondary dark:text-text-secondary mb-4 leading-relaxed text-sm">{{ . }}</p>
+            {{- end }}
+            {{- with $project.Params.stack }}
+            <ul class="featured-card__stack flex flex-wrap gap-2 mt-auto p-0 m-0" role="list">
+              {{- range first 4 . }}
+              <li>{{ . }}</li>
+              {{- end }}
+            </ul>
+            {{- end }}
+          </div>
+        </article>
+      </li>
+      {{- end }}
+    </ul>
+
+    <p class="mt-10 text-center">
+      <a href="{{ "projects/" | relLangURL }}" class="inline-flex items-center gap-2 min-h-[44px] bg-gradient-primary text-white px-6 py-3 rounded-lg shadow-lg font-semibold button-hover">
+        {{ i18n "allProjects" }}{{ partial "icon.html" (dict "name" "arrow-right") }}
+      </a>
+    </p>
+  </div>
+</section>
+{{- end -}}

@@ -1,0 +1,49 @@
+{
+  "defaults": {
+    "runners": ["axe"],
+    "standard": "WCAG2AA",
+    "levelCapWhenNeedsReview": "warning",
+    "chromeLaunchConfig": { "args": ["--no-sandbox"] }
+  },
+  "urls": [
+    { "url": "http://localhost:8080/#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+    { "url": "http://localhost:8080/es/#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+    { "url": "http://localhost:8080/projects/#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+    { "url": "http://localhost:8080/es/projects/#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+    { "url": "http://localhost:8080/projects/postulaflow/#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+    { "url": "http://localhost:8080/es/projects/postulaflow/#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+    { "url": "http://localhost:8080/gallery/#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+    { "url": "http://localhost:8080/es/gallery/#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+    { "url": "http://localhost:8080/404.html#pa11y-mobile-light", "viewport": { "width": 390, "height": 844 } },
+
+    { "url": "http://localhost:8080/#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+    { "url": "http://localhost:8080/es/#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+    { "url": "http://localhost:8080/projects/#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+    { "url": "http://localhost:8080/es/projects/#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+    { "url": "http://localhost:8080/projects/postulaflow/#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+    { "url": "http://localhost:8080/es/projects/postulaflow/#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+    { "url": "http://localhost:8080/gallery/#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+    { "url": "http://localhost:8080/es/gallery/#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+    { "url": "http://localhost:8080/404.html#pa11y-desktop-light", "viewport": { "width": 1280, "height": 800 } },
+
+    { "url": "http://localhost:8080/#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/es/#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/projects/#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/es/projects/#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/projects/postulaflow/#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/es/projects/postulaflow/#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/gallery/#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/es/gallery/#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/404.html#pa11y-mobile-dark", "viewport": { "width": 390, "height": 844 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+
+    { "url": "http://localhost:8080/#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/es/#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/projects/#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/es/projects/#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/projects/postulaflow/#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/es/projects/postulaflow/#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/gallery/#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/es/gallery/#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 },
+    { "url": "http://localhost:8080/404.html#pa11y-desktop-dark", "viewport": { "width": 1280, "height": 800 }, "actions": ["click element #theme-toggle", "wait for element html.dark to be added"], "wait": 500 }
+  ]
+}

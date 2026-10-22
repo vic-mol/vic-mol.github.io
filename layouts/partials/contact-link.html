@@ -1,0 +1,39 @@
+{{- /*
+  contact-link.html: the only way templates print the email address or the phone number (PLAN 8.2).
+  The values are never in the HTML: the span carries reversed Base64 strings from [params.contact] in
+  hugo.toml and assets/js/site.js (decodeContacts) swaps it for a real mailto:/tel: link.
+
+  Call:
+    {{ partial "contact-link.html" (dict
+      "page"  .             the page being rendered (kept for symmetry with img.html; not used)
+      "kind"  "email"       "email" or "phone"
+      "class" "..."         optional: class of the span; it moves to the link when JavaScript runs
+      "nojs"  true          optional: put the contactNoJs sentence in a <noscript> inside the span
+    ) }}
+
+  Output:
+    <span class="js-contact" data-kind="email" data-v="<rb64>" data-label="<aria-label>"><noscript>…</noscript></span>
+    phone adds data-d="<rb64 of the display format>".
+  The contract is at the top of assets/js/site.js.
+
+  `nojs` exists so the sentence is printed once per section, not once per span: the contact card passes
+  it for the email only; the footer passes nothing, so a footer with JavaScript off shows no text for the
+  address (the footer line is hidden by a rule in the T7 block of assets/css/site.css).
+  Prints nothing when the matching value is not set in hugo.toml.
+*/ -}}
+{{- $kind := .kind -}}
+{{- $contact := site.Params.contact | default dict -}}
+{{- $v := "" -}}{{- $d := "" -}}{{- $label := "" -}}
+{{- if eq $kind "email" -}}
+  {{- $v = $contact.email_rb64 | default "" -}}
+  {{- $label = i18n "emailAria" -}}
+{{- else if eq $kind "phone" -}}
+  {{- $v = $contact.phone_tel_rb64 | default "" -}}
+  {{- $d = $contact.phone_display_rb64 | default "" -}}
+  {{- $label = i18n "phoneAria" -}}
+{{- else -}}
+  {{- errorf "contact-link.html: kind must be \"email\" or \"phone\", got %q" $kind -}}
+{{- end -}}
+{{- if $v -}}
+<span class="js-contact{{ with .class }} {{ . }}{{ end }}" data-kind="{{ $kind }}" data-v="{{ $v }}"{{ with $d }} data-d="{{ . }}"{{ end }} data-label="{{ $label }}">{{ if .nojs }}<noscript>{{ i18n "contactNoJs" }}</noscript>{{ end }}</span>
+{{- end -}}

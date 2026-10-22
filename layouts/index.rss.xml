@@ -1,0 +1,45 @@
+{{- /*
+  Home feed (/index.xml, /es/index.xml): the language's blog posts only (never the CV sections or projects),
+  full post content in content:encoded, absolute URLs, limit services.rss.limit. With no posts the channel has no <item>.
+  Deliberately absent: managingEditor, webMaster and any author e-mail.
+  Keep in step with layouts/_default/rss.xml, which only differs in the page selection and the channel text.
+*/ -}}
+{{- $origin := printf "%s://%s" (urls.Parse site.BaseURL).Scheme (urls.Parse site.BaseURL).Host -}}
+{{- $pages := (where site.RegularPages "Section" "posts").ByDate.Reverse -}}
+{{- $limit := site.Config.Services.RSS.Limit -}}
+{{- if ge $limit 1 }}{{ $pages = first $limit $pages }}{{ end -}}
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>{{ printf "%s — %s" (i18n "blog") site.Title | transform.XMLEscape | safeHTML }}</title>
+    <link>{{ .Permalink }}</link>
+    <description>{{ site.Params.description | transform.XMLEscape | safeHTML }}</description>
+    <generator>Hugo</generator>
+    <language>{{ site.Language.Locale }}</language>
+    {{- if $pages }}
+    <lastBuildDate>{{ (index $pages.ByLastmod.Reverse 0).Lastmod.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</lastBuildDate>
+    {{- end }}
+    {{- with .OutputFormats.Get "rss" }}
+    {{ printf `<atom:link href=%q rel="self" type=%q />` .Permalink .MediaType | safeHTML }}
+    {{- end }}
+    {{- range $pages }}
+    {{- /* Root-relative links and images become absolute: readers do not resolve them against the site. */}}
+    {{- $html := .Content | string | replaceRE `(href|src)="/([^/])` (printf `${1}="%s/${2}` $origin) }}
+    {{- range findRE `srcset="[^"]*"` $html }}
+      {{- $html = replace $html . (. | replaceRE `(srcset="|,\s*)/([^/])` (printf `${1}%s/${2}` $origin)) }}
+    {{- end }}
+    <item>
+      <title>{{ .Title | transform.XMLEscape | safeHTML }}</title>
+      <link>{{ .Permalink }}</link>
+      <guid isPermaLink="true">{{ .Permalink }}</guid>
+      <pubDate>{{ .PublishDate.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</pubDate>
+      <dc:creator>{{ site.Params.author | default site.Title | transform.XMLEscape | safeHTML }}</dc:creator>
+      {{- range .GetTerms "tags" }}
+      <category>{{ .Data.Term | transform.XMLEscape | safeHTML }}</category>
+      {{- end }}
+      <description>{{ .Description | default (.Summary | plainify | truncate 280) | transform.XMLEscape | safeHTML }}</description>
+      <content:encoded>{{ printf "<![CDATA[%s]]>" (replace $html "]]>" "]]]]><![CDATA[>") | safeHTML }}</content:encoded>
+    </item>
+    {{- end }}
+  </channel>
+</rss>

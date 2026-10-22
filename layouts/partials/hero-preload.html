@@ -1,0 +1,11 @@
+{{- /*
+  hero-preload.html: the <link rel="preload" as="image"> for the hero background (PLAN 7.2: it is the LCP
+  element). head.html calls this on the home page only, when this file exists.
+
+  It asks img.html for the preload form of the SAME image, widths, sizes and fetchpriority that
+  partials/hero.html uses for the <picture>, so imagesrcset here equals the <source srcset> there.
+  If you change widths or sizes, change them in BOTH files.
+*/ -}}
+{{- with site.Params.hero_background -}}
+{{- partial "img.html" (dict "page" $ "src" . "widths" (slice 640 1024 1600 2400) "sizes" "100vw" "fetchpriority" "high" "preload" true) -}}
+{{- end -}}

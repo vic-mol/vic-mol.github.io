@@ -1,0 +1,34 @@
+{{- /*
+  Post metadata line: date, reading time and (optionally) tags.
+  Adapted from hugo-mana-theme (c) 2024 Livour, MIT.
+
+  Call:  {{ partial "post-meta.html" (dict "page" . "tags" true "label" false) }}
+    page   required: the post
+    tags   optional (default false): list the tags as links to their tag pages
+    label  optional (default false): prefix the date with the translated "Published"
+*/ -}}
+{{- $p := .page -}}
+<div class="post-meta flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-text-muted dark:text-text-muted">
+  <p class="m-0 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono">
+    <span class="inline-flex items-center gap-2">
+      {{ partial "icon.html" (dict "name" "calendar-days") }}
+      {{ if .label }}<span class="sr-only">{{ i18n "publishedOn" }}</span>{{ end -}}
+      <time datetime="{{ $p.Date.Format "2006-01-02" }}">{{ $p.Date | time.Format ":date_long" }}</time>
+    </span>
+    {{- if $p.ReadingTime }}
+    <span class="inline-flex items-center gap-2">
+      {{ partial "icon.html" (dict "name" "clock") }}
+      <span>{{ i18n "readingTime" $p.ReadingTime }}</span>
+    </span>
+    {{- end }}
+  </p>
+  {{- if .tags }}
+  {{- with $p.GetTerms "tags" }}
+  <ul class="post-tags m-0 flex list-none flex-wrap gap-2 p-0" role="list" aria-label="{{ i18n "tags" }}">
+    {{- range . }}
+    <li><a class="tag-pill" href="{{ .RelPermalink }}" rel="tag">{{ .Data.Term }}</a></li>
+    {{- end }}
+  </ul>
+  {{- end }}
+  {{- end }}
+</div>

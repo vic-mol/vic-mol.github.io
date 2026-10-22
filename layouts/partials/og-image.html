@@ -1,0 +1,97 @@
+{{- /*
+  og-image.html: the Open Graph / Twitter card of a page, generated at build time (PLAN 7.5).
+
+  Call:   {{ $card := partial "og-image.html" . }}      (. = a page)
+  Returns the processed JPEG resource, 1200x630. Use $card.Permalink, $card.Width, $card.Height.
+  One card per page and language, so a shared link previews in the right language.
+
+  The chain, all on a 1200x630 crop of the base photo (params.og_image = the hero background, or the
+  page's own `cover` param when it is a raster image under assets/):
+    Fill "1200x630 Center" -> images.Brightness -40 -> images.Overlay band.png 0 340 (navy band) ->
+    images.Text: the name   (IBM Plex Sans SemiBold, 80, white,   x 72, y 372)
+                 the line   (38, First Light #F2C9A8, x 72, y 470)   home: the language's tagline,
+                                                                      any other page: its title
+                 the host   (26, #E9ECEF,            x 72, y 545)   taken from site.BaseURL, never typed here
+  Output quality: JPEG q82.
+
+  images.Text does not wrap, so the line is wrapped here: at most 2 lines of about 56 characters (the
+  font averages 17.5 px per character at size 38, and a card has 1056 px of room), the tagline breaks at
+  sentence ends first, and a longer text ends in "...". With two lines they sit at y 464 and 512 and the host
+  moves down to y 576 so nothing touches it. A single line keeps the positions above.
+*/ -}}
+{{- $site := .Site -}}
+{{- $name := $site.Params.name | default $site.Title -}}
+{{- $host := (urls.Parse $site.BaseURL).Host -}}
+
+{{- /* base photo: the page's cover (posts) when it is a raster image, else the hero background */ -}}
+{{- $baseSrc := $site.Params.og_image -}}
+{{- with .Params.cover -}}
+  {{- if not (strings.HasSuffix (lower .) ".svg") }}{{ $baseSrc = . }}{{ end -}}
+{{- end -}}
+{{- $base := resources.Get $baseSrc -}}
+{{- if not $base }}{{ errorf "og-image.html: base image %q (params.og_image or the page's cover) not found under assets/; page %q" $baseSrc .Path }}{{ end -}}
+{{- $band := resources.Get "images/og/band.png" -}}
+{{- if not $band }}{{ errorf "og-image.html: assets/images/og/band.png is missing (run scripts/make_og_band.py)" }}{{ end -}}
+{{- $font := resources.Get "fonts/og/IBMPlexSans-SemiBold.ttf" -}}
+{{- if not $font }}{{ errorf "og-image.html: assets/fonts/og/IBMPlexSans-SemiBold.ttf is missing" }}{{ end -}}
+{{- $card := false -}}
+{{- /* errorf only logs (the build then fails); without all three resources there is nothing to draw */ -}}
+{{- if and $base $band $font -}}
+
+{{- /* the second line of text: the tagline on the home page, the title elsewhere */ -}}
+{{- $text := cond .IsHome ($site.Params.tagline | default "") .Title | strings.TrimSpace -}}
+{{- $sentences := slice $text -}}
+{{- if .IsHome }}{{ $sentences = split (replaceRE `([.!?])\s+` "$1\n" $text) "\n" }}{{ end -}}
+
+{{- /* wrap to at most two lines of $limit characters */ -}}
+{{- $limit := 56 -}}
+{{- $lines := slice -}}
+{{- $cur := "" -}}
+{{- $cut := false -}}
+{{- range $sentences -}}
+  {{- if not $cut -}}
+    {{- if $cur }}{{ $lines = $lines | append $cur }}{{ $cur = "" }}{{ end -}}
+    {{- if ge (len $lines) 2 }}{{ $cut = true }}{{ end -}}
+  {{- end -}}
+  {{- range split . " " -}}
+    {{- if and . (not $cut) -}}
+      {{- $try := cond (eq $cur "") . (printf "%s %s" $cur .) -}}
+      {{- if and (ne $cur "") (gt (strings.RuneCount $try) $limit) -}}
+        {{- $lines = $lines | append $cur -}}
+        {{- $cur = . -}}
+        {{- if ge (len $lines) 2 }}{{ $cut = true }}{{ end -}}
+      {{- else -}}
+        {{- $cur = $try -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if and $cur (not $cut) }}{{ $lines = $lines | append $cur }}{{ end -}}
+{{- /* cut: the second line ends in an ellipsis; a single word longer than the line is cut too */ -}}
+{{- $shown := slice -}}
+{{- range $i, $line := $lines -}}
+  {{- $l := $line -}}
+  {{- $last := and $cut (eq $i (sub (len $lines) 1)) -}}
+  {{- $room := cond $last (sub $limit 1) (add $limit 6) -}}
+  {{- if gt (strings.RuneCount $l) $room }}{{ $l = strings.TrimRight " .,;:-" (substr $l 0 (cond $last (sub $limit 1) $limit)) }}{{ $last = true }}{{ end -}}
+  {{- if $last }}{{ $l = printf "%s…" $l }}{{ end -}}
+  {{- $shown = $shown | append $l -}}
+{{- end -}}
+
+{{- /* the filter chain */ -}}
+{{- $filters := slice
+      (images.Brightness -40)
+      (images.Overlay $band 0 340)
+      (images.Text $name (dict "font" $font "size" 80 "color" "#ffffff" "x" 72 "y" 372)) -}}
+{{- $y := 470 -}}
+{{- $hostY := 545 -}}
+{{- if gt (len $shown) 1 }}{{ $y = 464 }}{{ $hostY = 576 }}{{ end -}}
+{{- range $shown -}}
+  {{- $filters = $filters | append (images.Text . (dict "font" $font "size" 38 "color" "#F2C9A8" "x" 72 "y" $y)) -}}
+  {{- $y = add $y 48 -}}
+{{- end -}}
+{{- $filters = $filters | append (images.Text $host (dict "font" $font "size" 26 "color" "#E9ECEF" "x" 72 "y" $hostY)) -}}
+
+{{- $card = (($base.Fill "1200x630 Center").Filter $filters).Process "jpg q82" -}}
+{{- end -}}
+{{- return $card -}}

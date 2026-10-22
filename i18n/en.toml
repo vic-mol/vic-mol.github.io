@@ -1,0 +1,170 @@
+# ---- Keys used by CareerCanvas partials (keep names) ----
+[aboutMe]
+other = "About me"
+[aboutName]
+other = "About"
+[certainlyNotHere]
+other = "Certainly not here"
+[connectOnLinkedIn]
+other = "Connect on LinkedIn"
+[contactFormLabel]
+other = "Let's talk"
+[contactFormLabelEmailLabel]
+other = "Email"
+[contactFormLabelMessageLabel]
+other = "Message"
+[contactFormLabelNameLabel]
+other = "Name"
+[contactFormLabelSubjectLabel]
+other = "Subject"
+[contactFormSendBtnLabel]
+other = "Send"
+[contactInformation]
+other = "Contact information"
+[demoImageAlt]
+other = "Illustration"
+[downloadResume]
+other = "Download CV"
+[fullscreen]
+other = "Full screen"
+[galleryNotFound]
+other = "No images found in"
+[getInTouch]
+other = "Get in touch"
+[goHome]
+other = "Go to the home page"
+[helloIm]
+other = "Hi, I'm"
+[iframeIdRequired]
+other = "Error: the iframe shortcode needs an 'id'."
+[interests]
+other = "Interests"
+[keyAchievements]
+other = "Highlights"
+[languages]
+other = "Languages"
+[learnMore]
+other = "Read more"
+[more]
+other = "More"
+[pageNotFound]
+other = "Page not found"
+[pageNotFoundSubtitle]
+other = "The page you're looking for doesn't exist or has moved."
+[quickFacts]
+other = "Quick facts"
+[relatedContent]
+other = "Related"
+[sendMeAMessage]
+other = "Send me a message"
+[viewCV]
+other = "View CV"
+[viewOnGithub]
+other = "View the source on GitHub"
+[vimeoPlayerTitle]
+other = "Vimeo video player"
+[youtubePlayerTitle]
+other = "YouTube video player"
+
+# ---- New keys used by this site's overrides ----
+[skipToContent]
+other = "Skip to main content"
+[mainNavigation]
+other = "Main navigation"
+[openMenu]
+other = "Open menu"
+[closeMenu]
+other = "Close menu"
+[switchToLanguage]
+other = "Read this page in {{ .Label }}"
+[languageSwitcher]
+other = "Language"
+[themeToggle]
+other = "Switch between dark and light mode"
+[closeDialog]
+other = "Close"
+[portraitAlt]
+other = "Portrait of {{ .Name }}"
+[emailLabel]
+other = "Email"
+[phoneLabel]
+other = "Phone"
+[linkedinLabel]
+other = "LinkedIn"
+[locationLabel]
+other = "Location"
+[contactNoJs]
+other = "Turn on JavaScript to see my email address and phone number, or reach me on LinkedIn."
+[emailAria]
+other = "Send an email to Victor Molina"
+[phoneAria]
+other = "Call Victor Molina"
+[linkedinQrTitle]
+other = "Scan to open my LinkedIn"
+[linkedinQrAlt]
+other = "QR code that opens linkedin.com/in/victormolinaalba"
+[opensInNewTab]
+other = "(opens in a new tab)"
+[projects]
+other = "Projects"
+[featuredProjects]
+other = "Selected projects"
+[allProjects]
+other = "See all projects"
+[caseStudy]
+other = "Work case study"
+[personalProject]
+other = "Personal project"
+[privateRepo]
+other = "Private repository"
+[sourceCode]
+other = "Source code"
+[liveSite]
+other = "Live site"
+[stack]
+other = "Stack"
+[gallery]
+other = "Off the clock"
+[galleryIntro]
+other = "A few photos from a trip to San Francisco, September 2026."
+[noItemsYet]
+other = "Nothing here yet"
+[noItemsYetBody]
+other = "New entries will appear here soon."
+[blog]
+other = "Blog"
+[allPosts]
+other = "All posts"
+[tags]
+other = "Tags"
+[taggedWith]
+other = "Posts tagged"
+[publishedOn]
+other = "Published"
+[updatedOn]
+other = "Updated"
+[readingTime]
+one = "{{ .Count }} min read"
+other = "{{ .Count }} min read"
+[tableOfContents]
+other = "On this page"
+[previousPost]
+other = "Previous post"
+[nextPost]
+other = "Next post"
+[relatedPosts]
+other = "Related posts"
+[translationAvailable]
+other = "This post is also available in {{ .Label }}"
+[rssFeed]
+other = "RSS feed"
+[subscribeRss]
+other = "Subscribe via RSS"
+[pageOf]
+other = "Page {{ .Current }} of {{ .Total }}"
+[builtWith]
+other = "Built with Hugo and the CareerCanvas theme"
+[backToTop]
+other = "Back to top"
+[present]
+other = "Present"

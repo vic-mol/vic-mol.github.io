@@ -1,0 +1,39 @@
+{{- /*
+  Language switcher (plan 6.4). Rendered once per page, in the header bar, at every width.
+  Shows "EN · ES" as text. The current language is a <span aria-current="true">, the other one a link.
+
+  Where the link goes (never to a 404; every target is looked up, not built from a string):
+    1. the translation of the current page (.AllTranslations);
+    2. a tag page without a twin  -> the other language's tags index;
+    3. a post without a twin      -> the other language's posts index;
+    4. anything else, and the root 404 -> the other language's home page.
+  On the home page the links also get data-keep-hash: site.js copies location.hash onto them, so
+  switching from /#experience lands on /es/#experience.
+*/ -}}
+{{- $page := . -}}
+{{- $current := site.Language.Lang -}}
+<nav class="lang-switch" aria-label="{{ i18n "languageSwitcher" }}">
+  {{- range $i, $s := hugo.Sites }}
+  {{- $lang := $s.Language.Lang }}
+  {{- if $i }}<span class="lang-switch__sep" aria-hidden="true">·</span>{{ end }}
+  {{- if eq $lang $current }}
+  <span class="lang-switch__item lang-switch__current" aria-current="true">{{ upper $lang }}</span>
+  {{- else }}
+  {{- $target := "" }}
+  {{- if ne $page.Kind "404" }}
+    {{- range $page.AllTranslations }}
+      {{- if eq .Language.Lang $lang }}{{ $target = .RelPermalink }}{{ end }}
+    {{- end }}
+  {{- end }}
+  {{- if not $target }}
+    {{- if eq $page.Kind "term" }}
+      {{- with $s.GetPage (printf "/%s" $page.Data.Plural) }}{{ if .Pages }}{{ $target = .RelPermalink }}{{ end }}{{ end }}
+    {{- else if and (eq $page.Section "posts") (or $page.IsPage $page.IsSection) }}
+      {{- with $s.GetPage "/posts" }}{{ $target = .RelPermalink }}{{ end }}
+    {{- end }}
+  {{- end }}
+  {{- if not $target }}{{ $target = $s.Home.RelPermalink }}{{ end }}
+  <a class="lang-switch__item lang-switch__link" href="{{ $target }}" hreflang="{{ $lang }}" lang="{{ $lang }}" data-lang-switch="{{ $lang }}"{{ if $page.IsHome }} data-keep-hash{{ end }} aria-label="{{ i18n "switchToLanguage" (dict "Label" $s.Language.Label) }}">{{ upper $lang }}</a>
+  {{- end }}
+  {{- end }}
+</nav>

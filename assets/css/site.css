@@ -1,0 +1,1728 @@
+/* ==========================================================================
+   Site layer on top of the CareerCanvas theme CSS (which stays untouched).
+   Order in the bundle: theme main.css → fonts.css → this file → syntax.css.
+   Palette: "Bay at first light" (see hugo.toml params.color_palettes).
+   Later tasks add their own delimited blocks, headed "== T7: contact ==" (no nested comment markers
+   here: a comment ends at the first star-slash, and the stray rest of this banner broke the :root rule).
+   ========================================================================== */
+
+/* == T4: tokens ========================================================== */
+:root {
+  --color-first-light: #F2C9A8;
+  --hero-overlay: linear-gradient(180deg, rgb(14 27 42 / .55), rgb(14 27 42 / .80));
+
+  /* The theme's muted gray (40% primary on white) is 2.1:1 on white. 80% primary → #4E667F, 5.95:1. */
+  --color-gray-500: color-mix(in srgb, var(--color-primary) 80%, white);
+  --color-text-muted: var(--color-gray-500);
+}
+
+.dark {
+  /* Restore the theme's dark-mode values that the :root override above would otherwise win. */
+  --color-gray-500: color-mix(in srgb, var(--color-primary) 40%, white);
+  --color-text-muted: var(--color-gray-400);
+  /* The theme's orange and brown fail on the dark background (2.8:1); lighter variants pass (6.0:1 / 7.4:1). */
+  --color-second: #EE7B63;
+  --color-third: #D9A27F;
+}
+
+/* == T4: typography ====================================================== */
+body {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.font-heading,
+h1, h2, h3 {
+  font-family: "Space Grotesk Variable", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.font-mono,
+code, kbd, samp, pre {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* == T4: focus, selection, skip link ===================================== */
+:focus-visible {
+  outline: 3px solid var(--color-second);
+  outline-offset: 2px;
+}
+
+.dark :focus-visible,
+.on-dark :focus-visible,
+.hero-section :focus-visible {
+  outline-color: var(--color-first-light);
+}
+
+::selection {
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.skip-link {
+  position: absolute;
+  left: .75rem;
+  top: -4rem;
+  z-index: 200;
+  padding: .625rem 1rem;
+  border-radius: .5rem;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: .75rem;
+}
+
+main:focus {
+  outline: none;
+}
+
+/* == T4: hero overlay ==================================================== */
+.hero-overlay {
+  background: var(--hero-overlay);
+}
+
+/* == T4: motion ========================================================== */
+/* Sections are visible by default (no JavaScript, print, reduced motion).
+   The fade-in only exists once the inline init script has added html.js. */
+section[id] {
+  scroll-margin-top: 5rem;
+}
+
+section[data-animate] {
+  opacity: 1;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js section[data-animate] {
+    transition: opacity .6s ease;
+  }
+
+  html.js section[data-animate]:not(.fade-in-visible) {
+    opacity: 0;
+  }
+}
+
+@media print {
+  html.js section[data-animate]:not(.fade-in-visible) {
+    opacity: 1 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* == T9: posts == */
+/* Blog layer: post cards, tag pills, table of contents, pagination and the post typography.
+   Colors come from the site tokens (they already switch with .dark); links use Bay Navy on light
+   surfaces and First Light on dark ones (10.7:1 and 10.8:1). Tailwind has no "primary" color in this
+   project, so hover states live here instead of in utility classes. */
+
+/* Links outside the prose: back link, RSS, tags index, translation notice */
+.meta-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .2em;
+}
+
+.meta-link:hover {
+  color: var(--color-second);
+  text-decoration-thickness: 2px;
+}
+
+.dark .meta-link {
+  color: var(--color-first-light);
+}
+
+.dark .meta-link:hover {
+  color: #fff;
+}
+
+.post-translation {
+  max-width: 65ch;
+}
+
+/* Cards (post list, tag page, related posts). The title link is stretched over the whole card. */
+.post-card {
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.post-card:hover {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 8px 24px var(--color-shadow-light);
+}
+
+.dark .post-card:hover {
+  border-color: var(--color-first-light) !important;
+}
+
+.post-card:has(.stretched-link:focus-visible) {
+  outline: 3px solid var(--color-second);
+  outline-offset: 2px;
+}
+
+.dark .post-card:has(.stretched-link:focus-visible) {
+  outline-color: var(--color-first-light);
+}
+
+/* The card shows the focus ring where :has() is supported; elsewhere the link keeps its own ring. */
+@supports selector(:has(a)) {
+  .stretched-link:focus-visible {
+    outline: none;
+  }
+}
+
+.stretched-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.post-title-link {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.post-title-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: .2em;
+}
+
+.dark .post-title-link:hover {
+  color: var(--color-first-light);
+}
+
+/* Tag pills: the "metadata voice" (JetBrains Mono). Above the stretched card link so they stay clickable. */
+.tag-pill {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .15rem .7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.tag-pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.dark .tag-pill:hover {
+  border-color: var(--color-first-light);
+  color: var(--color-first-light);
+}
+
+.tag-pill-lg {
+  padding: .4rem .9rem;
+  font-size: .875rem;
+}
+
+.tag-count {
+  padding: 0 .4rem;
+  border-radius: 9999px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  font-size: .75rem;
+}
+
+.dark .tag-count {
+  background: var(--color-bg-tertiary);
+}
+
+.tag-name {
+  color: var(--color-second);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .9em;
+  overflow-wrap: anywhere;
+}
+
+/* Table of contents (collapsible <details>, no JavaScript) */
+.post-toc {
+  max-width: 65ch;
+  margin: 0 0 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-bg-secondary);
+}
+
+.post-toc summary {
+  cursor: pointer;
+  font-family: "Space Grotesk Variable", "IBM Plex Sans", system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.post-toc ul {
+  margin: .5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post-toc ul ul {
+  margin-top: .25rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--color-border);
+}
+
+.post-toc li {
+  margin: .25rem 0;
+}
+
+.post-toc a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.post-toc a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.dark .post-toc a:hover {
+  color: var(--color-first-light);
+}
+
+/* Previous / next post */
+.post-nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-bg-secondary);
+  text-decoration: none;
+  transition: border-color .2s ease;
+}
+
+.post-nav-link:hover {
+  border-color: var(--color-primary);
+}
+
+.dark .post-nav-link:hover {
+  border-color: var(--color-first-light);
+}
+
+.post-nav-label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--color-text-muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+}
+
+.post-nav-title {
+  color: var(--color-text-primary);
+  font-family: "Space Grotesk Variable", "IBM Plex Sans", system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Pagination: 44px targets */
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 .5rem;
+  border: 1px solid var(--color-border);
+  border-radius: .5rem;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a.page-link:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.dark a.page-link:hover {
+  border-color: var(--color-first-light);
+  color: var(--color-first-light);
+}
+
+.page-link-current {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.dark .page-link-current {
+  border-color: var(--color-first-light);
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.page-link-disabled {
+  opacity: .4;
+}
+
+/* Post typography: Tailwind "prose" mapped onto the site tokens (light and dark share the same variables) */
+.post-prose {
+  --tw-prose-body: var(--color-text-primary);
+  --tw-prose-headings: var(--color-text-primary);
+  --tw-prose-lead: var(--color-text-secondary);
+  --tw-prose-links: var(--color-primary);
+  --tw-prose-bold: var(--color-text-primary);
+  --tw-prose-counters: var(--color-text-muted);
+  --tw-prose-bullets: var(--color-text-muted);
+  --tw-prose-hr: var(--color-border);
+  --tw-prose-quotes: var(--color-text-primary);
+  --tw-prose-quote-borders: var(--color-second);
+  --tw-prose-captions: var(--color-text-muted);
+  --tw-prose-code: var(--color-text-primary);
+  --tw-prose-pre-code: #1f2328;
+  --tw-prose-pre-bg: #f7f7f7;
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border);
+
+  --tw-prose-invert-body: var(--color-text-primary);
+  --tw-prose-invert-headings: var(--color-text-primary);
+  --tw-prose-invert-lead: var(--color-text-secondary);
+  --tw-prose-invert-links: var(--color-first-light);
+  --tw-prose-invert-bold: var(--color-text-primary);
+  --tw-prose-invert-counters: var(--color-text-muted);
+  --tw-prose-invert-bullets: var(--color-text-muted);
+  --tw-prose-invert-hr: var(--color-border);
+  --tw-prose-invert-quotes: var(--color-text-primary);
+  --tw-prose-invert-quote-borders: var(--color-second);
+  --tw-prose-invert-captions: var(--color-text-muted);
+  --tw-prose-invert-code: var(--color-text-primary);
+  --tw-prose-invert-pre-code: #e6edf3;
+  --tw-prose-invert-pre-bg: #0d1117;
+  --tw-prose-invert-th-borders: var(--color-border);
+  --tw-prose-invert-td-borders: var(--color-border);
+}
+
+.post-prose a:hover {
+  color: var(--color-second);
+}
+
+.dark .post-prose a:hover {
+  color: #fff;
+}
+
+.post-prose h2,
+.post-prose h3 {
+  scroll-margin-top: 5rem;
+}
+
+.post-prose img {
+  height: auto;
+  border-radius: .75rem;
+}
+
+.post-prose figure {
+  margin: 2rem 0;
+}
+
+.post-prose figcaption {
+  text-align: center;
+}
+
+.post-prose pre {
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  font-size: .875em;
+}
+
+/* Inline code: a tinted chip instead of Tailwind's backticks */
+.post-prose :not(pre) > code {
+  padding: .1em .35em;
+  border-radius: .35rem;
+  background: var(--color-bg-secondary);
+  font-weight: 500;
+}
+
+.post-prose :not(pre) > code::before,
+.post-prose :not(pre) > code::after {
+  content: none;
+}
+
+/* == T5: nav and footer ================================================== */
+/* Header: layouts/partials/nav.html + lang-switch.html. Footer: layouts/partials/footer.html.
+   Breakpoint: 80rem (Tailwind xl). Below it the links and the social icons live in #mobile-menu.
+   Every control is at least 44x44 px; the bar never wraps (360 px to 1536 px). */
+.site-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  isolation: isolate;
+  background: var(--color-bg);
+  box-shadow: 0 4px 6px -1px var(--color-shadow-light), 0 2px 4px -2px var(--color-shadow-light);
+}
+
+.site-header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .25rem;
+  height: 4rem;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: .5rem;
+}
+
+@media (min-width: 40rem) {
+  .site-header__bar { padding-inline: 1rem; }
+}
+
+@media (min-width: 80rem) {
+  .site-header__bar { padding-inline: 1.5rem; }
+}
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 40rem) {
+  .site-brand { font-size: 1.5rem; }
+}
+
+@media (min-width: 80rem) {
+  .site-brand { font-size: 1.75rem; }
+}
+
+.site-brand:hover { color: var(--color-third); }
+
+/* Links: desktop list and mobile panel share one look */
+.site-nav { display: none; }
+
+.site-nav__list,
+.mobile-menu__list,
+.mobile-menu__social,
+.site-social {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: .625rem;
+  border-radius: .375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  text-decoration-thickness: 2px;
+  text-underline-offset: .4em;
+  color: var(--color-text-primary);
+}
+
+.site-nav__link:hover,
+.site-nav__link:focus-visible {
+  color: var(--color-third);
+  text-decoration-line: underline;
+}
+
+.site-nav__link[aria-current="page"] {
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-second);
+}
+
+/* Icon buttons and icon links (theme toggle, menu button, social) */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: .5rem;
+  background: transparent;
+  font-size: 1.25rem;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.icon-btn:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-third);
+}
+
+.icon-btn .theme-toggle__sun,
+.icon-btn .menu-icon-close { display: none; }
+
+.dark .icon-btn .theme-toggle__sun { display: inline-block; }
+.dark .icon-btn .theme-toggle__moon { display: none; }
+
+#menu-btn[aria-expanded="true"] .menu-icon-open { display: none; }
+#menu-btn[aria-expanded="true"] .menu-icon-close { display: inline-block; }
+
+.site-social { display: none; }
+
+/* Language switcher: "EN · ES", always in the bar */
+.lang-switch {
+  display: flex;
+  align-items: center;
+  font-size: .875rem;
+  letter-spacing: .04em;
+}
+
+.lang-switch__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: .375rem;
+  text-decoration: none;
+  text-decoration-thickness: 2px;
+  text-underline-offset: .4em;
+}
+
+.lang-switch__current {
+  font-weight: 700;
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-second);
+  color: var(--color-text-primary);
+}
+
+.lang-switch__link {
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.lang-switch__link:hover,
+.lang-switch__link:focus-visible {
+  color: var(--color-third);
+  text-decoration-line: underline;
+}
+
+.lang-switch__sep { color: var(--color-text-muted); }
+
+/* Mobile panel (toggled by initMenu through the `hidden` class) */
+.mobile-menu {
+  max-height: calc(100vh - 4rem);
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.mobile-menu__list {
+  flex-direction: column;
+  align-items: stretch;
+  padding: .5rem .75rem;
+}
+
+.mobile-menu .site-nav__link {
+  display: flex;
+  width: 100%;
+  padding-inline: .75rem;
+  font-size: 1rem;
+}
+
+.mobile-menu__social {
+  gap: .25rem;
+  margin-inline: .75rem;
+  padding: .5rem 0 .75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 80rem) {
+  .site-nav { display: block; }
+  .site-nav__list { gap: .125rem; }
+  .site-social { display: flex; }
+  #menu-btn,
+  #mobile-menu { display: none; }
+}
+
+/* No JavaScript: the menu cannot open, so below 80rem it is always open (in the flow, not fixed)
+   and the two buttons, which would do nothing, are hidden. The base layout's 4rem spacer goes too. */
+html.no-js .theme-toggle,
+html.no-js #menu-btn { display: none; }
+
+@media (max-width: 79.99rem) {
+  html.no-js .site-header { position: relative; }
+  html.no-js .site-header + div { display: none; }
+  html.no-js #mobile-menu { display: block; max-height: none; overflow: visible; }
+  html.no-js .mobile-menu__list { flex-direction: row; flex-wrap: wrap; }
+  html.no-js .mobile-menu .site-nav__link { width: auto; }
+}
+
+/* Footer */
+.site-footer {
+  padding-block: 3rem 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.site-footer__inner {
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .site-footer__inner { padding-inline: 1.5rem; }
+}
+
+@media (min-width: 64rem) {
+  .site-footer__inner { padding-inline: 2rem; }
+}
+
+.site-footer__top {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 48rem) {
+  .site-footer__top {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.site-footer__about { max-width: 40rem; }
+
+.site-footer__brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--color-text-primary);
+}
+
+.site-footer__brand:hover { color: var(--color-third); }
+
+.site-footer__text {
+  margin-top: .5rem;
+  color: var(--color-text-secondary);
+}
+
+.site-footer__meta {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .5rem;
+  color: var(--color-text-secondary);
+}
+
+.site-footer__meta > .icon {
+  flex: none;
+  width: 1.25rem;
+}
+
+.site-footer__link {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.site-footer__link:hover { color: var(--color-third); }
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25rem;
+  margin: .75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-footer__links .site-footer__link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+.site-footer__links .site-footer__link:hover { text-decoration: underline; }
+
+.site-footer__links .icon { font-size: 1.25rem; }
+
+.site-footer__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  max-width: 28rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 48rem) {
+  .site-footer__tags { justify-content: flex-end; }
+}
+
+.site-footer__tags li {
+  padding: .5rem .75rem;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+.site-footer__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  font-size: .875rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+/* == T8: projects, gallery, 404 == */
+/* Project cards and pages (layouts/_default/list.html + single.html), the gallery page
+   (layouts/gallery/list.html) and the bilingual 404 (layouts/404.html). Cards reuse the T9 pieces
+   (.post-card, .stretched-link, .post-title-link, .tag-pill, .meta-link, .post-prose). */
+
+/* "Work case study" / "Personal project": navy fill = work, terracotta outline = personal.
+   White on Bay Navy 10.7:1; Palace Terracotta on Fog 5.1:1; in dark mode Bay Navy on First Light 7:1
+   and the lighter terracotta (#D9A27F) on the dark surfaces 7.4:1. */
+.kind-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .2rem .75rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: .01em;
+}
+
+.kind-badge--case-study {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.dark .kind-badge--case-study {
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.kind-badge--personal {
+  border-color: var(--color-third);
+  color: var(--color-third);
+}
+
+/* Stack pills: the same "metadata voice" as .tag-pill, but not links */
+.stack-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stack-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: .15rem .65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  line-height: 1.6;
+}
+
+.stack-pill--more {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+/* Project list cards */
+.project-card__cover {
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+  background: #112030;
+  line-height: 0;
+}
+
+.project-card__cover img {
+  transition: transform .4s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .project-card:hover .project-card__cover img {
+    transform: scale(1.04);
+  }
+}
+
+.project-card__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 8 / 5;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+/* Project page: text on the left, cover on the right from 64rem; stacked below that */
+.project-hero {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (min-width: 64rem) {
+  .project-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+    gap: 3rem;
+  }
+}
+
+.project-hero__cover {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: #112030;
+  box-shadow: 0 12px 32px var(--color-shadow-light);
+  line-height: 0;
+}
+
+.project-stack-label {
+  margin: 1.5rem 0 .5rem;
+  color: var(--color-text-muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: .5rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: .5rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.project-link:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.project-link--primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.project-link--primary:hover {
+  border-color: var(--color-second);
+  background: var(--color-second);
+}
+
+.dark .project-link {
+  border-color: var(--color-first-light);
+  color: var(--color-first-light);
+}
+
+.dark .project-link:hover,
+.dark .project-link--primary {
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.dark .project-link--primary:hover {
+  border-color: #fff;
+  background: #fff;
+}
+
+.project-private {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  color: var(--color-text-secondary);
+  font-size: .9375rem;
+}
+
+.project-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 65ch;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Gallery page: only the intro paragraphs are held to a reading width, the photo grid is not.
+   .post-prose gives figures a 2rem margin and centers captions; undo both inside the grid. */
+.gallery-content > p {
+  max-width: 65ch;
+}
+
+.gallery-content .photo-gallery figure {
+  margin: 0;
+}
+
+.gallery-content .photo-gallery img {
+  border-radius: 0;
+}
+
+.gallery-content .photo-gallery figcaption {
+  text-align: left;
+}
+
+/* 404: photo under the hero overlay, one h1, then one card per language (English first).
+   Always light-on-dark, so there are no .dark variants; focus rings come from .on-dark (T4). */
+.error-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: clamp(28rem, 72vh, 48rem);
+  overflow: hidden;
+  color: #fff;
+}
+
+.error-hero__bg,
+.error-hero__shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.error-hero__bg picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.error-hero__bg img {
+  object-position: center 60%;
+}
+
+.error-hero__inner {
+  position: relative;
+  width: 100%;
+  max-width: 64rem;
+  margin-inline: auto;
+  padding: 3rem 1rem;
+}
+
+@media (min-width: 40rem) {
+  .error-hero__inner { padding: 4rem 1.5rem; }
+}
+
+.error-hero__code {
+  margin: 0 0 1.5rem;
+  color: var(--color-first-light);
+  font-size: clamp(4rem, 14vw, 8rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+
+.error-hero__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 48rem) {
+  .error-hero__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.error-card {
+  padding: 1.5rem;
+  border: 1px solid rgb(255 255 255 / .2);
+  border-radius: 1rem;
+  background: rgb(14 27 42 / .4);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.error-card__title {
+  margin: 0 0 .75rem;
+  color: #fff;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.error-card__text {
+  margin: 0 0 1.5rem;
+  color: #E9ECEF;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.error-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.error-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  min-height: 44px;
+  padding: .55rem 1.1rem;
+  border: 1px solid var(--color-first-light);
+  border-radius: .5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.error-btn--primary {
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.error-btn--primary:hover {
+  border-color: #fff;
+  background: #fff;
+}
+
+.error-btn--secondary {
+  background: transparent;
+  color: var(--color-first-light);
+}
+
+.error-btn--secondary:hover {
+  background: rgb(242 201 168 / .16);
+  color: #fff;
+}
+
+/* == T7: home sections == */
+/* Home page: hero, about (photo, quick facts, dialog), selected projects, tech icons, contact.
+   Markup: layouts/partials/{hero,about,experience,technical,projects-featured,contact}.html.
+   Names are prefixed per component (hero-, about-, quick-fact, featured-card, tech-, contact-) so they
+   cannot collide with the theme's classes or with another task's block. */
+
+:root {
+  --contact-overlay: rgb(14 27 42 / .85);
+}
+
+/* -- Hero ------------------------------------------------------------------ */
+/* Background photo (decorative) under the --hero-overlay gradient. The theme's .gradient-bg stays
+   behind both as the colour shown while the photo loads. */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-bg picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-bg__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 60%;
+}
+
+.hero-section .hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Side by side (lg and up) the text sits on the right half, which holds the brightest part of the sky:
+   a second, lighter layer there keeps white text above 6.3:1 (measured in a browser, see the T7 report).
+   Stacked, the text is centred and the base overlay alone is enough. */
+@media (min-width: 64rem) {
+  .hero-section .hero-overlay {
+    background: var(--hero-overlay), linear-gradient(90deg, transparent 34%, rgb(14 27 42 / .26) 47%);
+  }
+}
+
+.hero-profile-ring picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-text {
+  max-width: 37.5rem;
+}
+
+/* White, not First Light, for the greeting: over the brightest sky the peach measured 4.06:1 (small text needs 4.5). */
+.hero-greeting,
+.hero-title,
+.hero-lead,
+.hero-description {
+  color: #fff;
+}
+
+.hero-greeting {
+  letter-spacing: .02em;
+}
+
+.hero-badge-icon {
+  color: var(--color-first-light);
+}
+
+.hero-lead {
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* A soft dark glass behind the longest text keeps white-on-photo contrast high wherever the sky is bright. */
+.hero-description {
+  background: rgb(14 27 42 / .35);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.hero-button--primary {
+  border: 2px solid #fff;
+  background: #fff;
+  color: var(--color-primary);
+}
+
+.hero-button--primary:hover {
+  border-color: var(--color-first-light);
+  background: var(--color-first-light);
+}
+
+.hero-button--outline {
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+}
+
+.hero-button--outline:hover {
+  background: rgb(255 255 255 / .18);
+}
+
+.hero-social {
+  list-style: none;
+}
+
+.hero-social__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / .14);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color .2s ease;
+}
+
+.hero-social__link:hover {
+  background: rgb(255 255 255 / .28);
+}
+
+/* -- About ----------------------------------------------------------------- */
+.about-photo {
+  margin-inline: 0;
+}
+
+.about-photo picture {
+  display: block;
+}
+
+.about-photo__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: .75rem;
+  object-fit: cover;
+}
+
+.about-photo__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .25rem .75rem;
+  margin-top: .75rem;
+  font-size: .875rem;
+  color: var(--color-text-secondary);
+}
+
+.about-photo__link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.about-photo__link:hover {
+  color: var(--color-second);
+}
+
+.dark .about-photo__link {
+  color: var(--color-first-light);
+}
+
+.dark .about-photo__link:hover {
+  color: #fff;
+}
+
+.quick-fact {
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--color-primary) 3%, var(--color-bg));
+}
+
+.dark .quick-fact {
+  background: color-mix(in srgb, var(--color-primary) 4%, var(--color-bg));
+}
+
+/* Same width for every icon, so the titles line up whatever glyph the fact uses. */
+.quick-fact__icon {
+  flex: none;
+  width: 1.5rem;
+  text-align: center;
+}
+
+/* Links inside a fact (the employer): underlined, because the reset removes the underline and the colour alone is not enough. */
+.quick-fact a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.quick-fact a:hover {
+  color: var(--color-second);
+}
+
+.dark .quick-fact a {
+  color: var(--color-first-light);
+}
+
+.dark .quick-fact a:hover {
+  color: #fff;
+}
+
+/* "More" dialog: native <dialog>; Esc, focus return and the backdrop are the browser's. */
+.about-dialog {
+  width: min(64rem, calc(100% - 2rem));
+  max-height: min(85vh, 50rem);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: .75rem;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / .5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.about-dialog::backdrop {
+  background: rgb(14 27 42 / .65);
+}
+
+.about-dialog__inner {
+  padding: 1.5rem;
+}
+
+@media (min-width: 40rem) {
+  .about-dialog__inner { padding: 2rem; }
+}
+
+.about-passion {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg));
+}
+
+.about-dialog__close {
+  flex: none;
+}
+
+html:has(dialog[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+/* No JavaScript (or no <dialog> support, see initDialogs): the longer text is shown in the page instead. */
+html.no-js .about-dialog,
+html.no-dialog .about-dialog {
+  display: block;
+  position: static;
+  width: auto;
+  max-height: none;
+  margin: 2rem 0 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+html.no-js [data-dialog-open],
+html.no-js [data-dialog-close],
+html.no-dialog [data-dialog-open],
+html.no-dialog [data-dialog-close],
+html.no-js .about-dialog__intro {
+  display: none;
+}
+
+/* -- Experience ------------------------------------------------------------ */
+.company-link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .2em;
+}
+
+.company-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* -- Selected projects ----------------------------------------------------- */
+.featured-card {
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.featured-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px var(--color-shadow-light);
+}
+
+.dark .featured-card:hover {
+  border-color: var(--color-first-light);
+}
+
+.featured-card__cover {
+  aspect-ratio: 8 / 5;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+.featured-card__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featured-card__cover--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-size: 2.5rem;
+}
+
+.dark .featured-card__cover--empty {
+  color: var(--color-first-light);
+}
+
+.featured-card__badge {
+  align-self: flex-start;
+  margin: 0 0 .75rem;
+  padding: .2rem .7rem;
+  border-radius: 9999px;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.featured-card__badge--case {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.featured-card__badge--personal {
+  background: var(--color-third);
+  color: #fff;
+}
+
+/* In dark mode --color-third is a light terracotta (#D9A27F): white text on it fails, navy passes. */
+.dark .featured-card__badge--personal {
+  color: #112030;
+}
+
+/* The title link stretches over the whole card, so the card is one big target with a short link name. */
+.featured-card__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.featured-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.featured-card:hover .featured-card__link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: .2em;
+}
+
+.dark .featured-card:hover .featured-card__link {
+  color: var(--color-first-light);
+}
+
+/* Where :has() works the card shows the focus ring; elsewhere the link keeps its own. */
+@supports selector(:has(a)) {
+  .featured-card__link:focus-visible {
+    outline: none;
+  }
+
+  .featured-card:has(.featured-card__link:focus-visible) {
+    outline: 3px solid var(--color-second);
+    outline-offset: 2px;
+  }
+
+  .dark .featured-card:has(.featured-card__link:focus-visible) {
+    outline-color: var(--color-first-light);
+  }
+}
+
+.featured-card__stack li {
+  padding: .15rem .65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .75rem;
+  line-height: 1.6;
+}
+
+/* -- Tech stack ------------------------------------------------------------ */
+.tech-icon {
+  object-fit: contain;
+}
+
+/* -- Contact --------------------------------------------------------------- */
+.contact-bg,
+.contact-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.contact-bg {
+  z-index: 0;
+}
+
+.contact-bg picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.contact-bg__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contact-overlay {
+  z-index: 1;
+  background: var(--contact-overlay);
+}
+
+.contact-intro {
+  color: rgb(255 255 255 / .92);
+}
+
+.contact-panel {
+  max-width: 52rem;
+  border: 1px solid rgb(255 255 255 / .18);
+  background: rgb(14 27 42 / .55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.contact-list {
+  margin: 0;
+}
+
+.contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem 1rem;
+  min-height: 44px;
+  padding-block: .5rem;
+}
+
+.contact-row + .contact-row {
+  border-top: 1px solid rgb(255 255 255 / .14);
+}
+
+.contact-row dt {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 9rem;
+  color: rgb(255 255 255 / .85);
+  font-size: .875rem;
+  font-weight: 600;
+}
+
+.contact-row dt .icon {
+  width: 1.25rem;
+  color: var(--color-first-light);
+}
+
+.contact-row dd {
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+
+.contact-row dd a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-first-light);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.contact-row dd a:hover {
+  color: #fff;
+}
+
+.contact-qr {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  margin: 0;
+}
+
+/* White in both themes: scanners need dark modules on a light background. */
+.contact-qr__tile {
+  padding: .75rem;
+  border-radius: 1rem;
+  background: #fff;
+  line-height: 0;
+}
+
+.contact-qr__img {
+  display: block;
+  width: 160px;
+  height: 160px;
+}
+
+.contact-qr figcaption {
+  max-width: 12rem;
+  color: rgb(255 255 255 / .88);
+  font-size: .875rem;
+  text-align: center;
+}
+
+/* Without JavaScript the address and number cannot be shown. The email row carries the sentence (once);
+   the phone row would be an empty label, and the footer line an icon alone, so both go. */
+html.no-js .contact-row--phone,
+html.no-js .site-footer__meta:has(> .js-contact) {
+  display: none;
+}
+
+/* == T11: icons == */
+/* Inline Font Awesome SVGs (layouts/partials/icon.html; they replaced the Font Awesome webfonts and CSS).
+   Each icon is 1em tall and follows the font-size and colour of the text around it, like the glyph it
+   replaces. Its width is the width attribute that icon.html derives from the viewBox (the glyph's advance
+   in em), so no width is set here and a component rule (.quick-fact__icon, .site-footer__meta > .icon)
+   can still give an icon its own box. Tailwind's preflight makes every svg display:block with
+   vertical-align:middle; this rule (more specific than the element selector) puts it back in the text
+   flow, 0.125em below the baseline, where the font glyph sat. */
+.icon {
+  display: inline-block;
+  height: 1em;
+  vertical-align: -.125em;
+  flex-shrink: 0;
+}
+
+/* Quick facts: the old glyph sat in a 28px line box (text-lg), the same height as the title beside it, so the
+   icon was centred on the title's first line. 18px icon + 2 x 5px margin keeps that alignment. */
+.quick-fact__icon {
+  margin-block: 5px;
+}

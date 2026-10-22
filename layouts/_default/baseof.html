@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="{{ site.Language.Locale }}" class="no-js">
+<head>
+    {{- /* Theme init: runs before CSS so there is no flash of the wrong theme. Marks the page as JS-enabled. */ -}}
+    <script>(function(d){var c=d.classList,t=null,m=matchMedia('(prefers-color-scheme: dark)').matches;try{t=localStorage.getItem('theme')}catch(e){}if(t==='dark'||(t!=='light'&&m))c.add('dark');c.remove('no-js');c.add('js')})(document.documentElement)</script>
+    {{ partial "head.html" . }}
+    {{ partial "color-variables.html" . }}
+
+    {{- /* CSS pipeline: theme main.css minus its Google Fonts @import, + fonts, site overrides and syntax colors */ -}}
+    {{- $theme := resources.Get "css/main.css" -}}
+    {{- $themeCSS := $theme.Content | replaceRE `^@import url\([^)]*\);?\s*` "" | resources.FromString "css/theme.css" -}}
+    {{- $parts := slice $themeCSS -}}
+    {{- range slice "css/fonts.css" "css/site.css" "css/syntax.css" -}}
+        {{- with resources.Get . -}}{{- $parts = $parts | append . -}}{{- end -}}
+    {{- end -}}
+    {{- $css := $parts | resources.Concat "css/bundle.css" | postCSS (dict "config" "./postcss.config.js") -}}
+    {{- if hugo.IsProduction -}}
+        {{- $css = $css | minify | fingerprint "sha384" -}}
+        <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+    {{- else -}}
+        <link rel="stylesheet" href="{{ $css.RelPermalink }}">
+    {{- end }}
+</head>
+<body class="bg-bg dark:bg-bg text-text-primary dark:text-text-primary flex flex-col min-h-screen">
+    <a href="#main" class="skip-link">{{ i18n "skipToContent" }}</a>
+
+    {{ partial "nav.html" . }}
+    <div class="w-full h-16"></div>
+
+    <main id="main" class="flex-grow" tabindex="-1">
+        {{ block "main" . }}{{ end }}
+    </main>
+
+    {{ partial "footer.html" . }}
+
+    {{- $js := resources.Get "js/site.js" -}}
+    {{- if hugo.IsProduction -}}
+        {{- $js = $js | minify | fingerprint "sha384" -}}
+        <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+    {{- else -}}
+        <script src="{{ $js.RelPermalink }}" defer></script>
+    {{- end }}
+</body>
+</html>

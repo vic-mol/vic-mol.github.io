@@ -1,0 +1,18 @@
+{{- /*
+  Table of contents for a post. Prints nothing unless the post has at least 3 headings
+  (counted in the generated table of contents, h2-h3) and `toc` is not set to false in its front matter.
+  Adapted from hugo-mana-theme (c) 2024 Livour, MIT.
+*/ -}}
+{{- $enabled := true -}}
+{{- if isset .Params "toc" }}{{ $enabled = .Params.toc }}{{ end -}}
+{{- $toc := .TableOfContents -}}
+{{- if and $enabled (ge (len (findRE `<li[ >]` $toc)) 3) -}}
+{{- /* Hugo wraps the list in an unlabeled <nav>; drop it so the one below carries the accessible name. */ -}}
+{{- $list := $toc | replaceRE `^\s*<nav[^>]*>\s*` "" | replaceRE `\s*</nav>\s*$` "" -}}
+<nav class="post-toc" aria-label="{{ i18n "tableOfContents" }}">
+  <details open>
+    <summary>{{ i18n "tableOfContents" }}</summary>
+    {{ $list | safeHTML }}
+  </details>
+</nav>
+{{- end -}}

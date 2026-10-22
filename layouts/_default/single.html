@@ -1,0 +1,106 @@
+{{- /*
+  Single page (PLAN 6.3, T8). Overrides the CareerCanvas single.html. Used by the project pages
+  (posts have layouts/posts/single.html).
+
+  A project page (section "projects", or any page that sets `kind` or `stack`) shows:
+    - a back link to the projects list;
+    - the "Work case study" / "Personal project" badge from `kind`;
+    - the title, the description as a lede, and links: `repo` ("Source code") and `live` ("Live site")
+      when set; otherwise "Private repository" for kind "personal" and nothing for a case study;
+    - the `stack` as pills and the cover (partials/img.html, decorative) beside them;
+    - the Markdown body in .post-prose (T9 typography) and the page's tags as links to the tag pages.
+  Any other page gets a plain title + body. The theme's "Related" sidebar is not kept.
+*/ -}}
+{{ define "main" }}
+{{- $isProject := or (eq .Section "projects") (isset .Params "kind") (isset .Params "stack") -}}
+{{- if $isProject }}
+{{- $list := .CurrentSection -}}
+<article class="pt-8 pb-16 bg-bg dark:bg-bg">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    {{- if and $list (not $list.IsHome) }}
+    <p class="mb-6 text-sm font-medium"><a class="meta-link" href="{{ $list.RelPermalink }}">{{ partial "icon.html" (dict "name" "arrow-left") }} {{ i18n "projects" }}</a></p>
+    {{- end }}
+
+    <header class="project-hero mb-10">
+      <div class="project-hero__text">
+        {{- if eq .Params.kind "case-study" }}
+        <p class="m-0 mb-4"><span class="kind-badge kind-badge--case-study">{{ partial "icon.html" (dict "name" "briefcase") }}{{ i18n "caseStudy" }}</span></p>
+        {{- else if eq .Params.kind "personal" }}
+        <p class="m-0 mb-4"><span class="kind-badge kind-badge--personal">{{ partial "icon.html" (dict "name" "laptop-code") }}{{ i18n "personalProject" }}</span></p>
+        {{- end }}
+
+        <h1 class="mb-4 text-3xl md:text-5xl font-bold leading-tight font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h1>
+        {{- with .Description }}
+        <p class="m-0 mb-6 max-w-prose text-lg text-text-secondary dark:text-text-secondary">{{ . }}</p>
+        {{- end }}
+
+        {{- $repo := .Params.repo -}}
+        {{- $live := .Params.live -}}
+        {{- $private := and (not $repo) (eq .Params.kind "personal") -}}
+        {{- if or $repo $live $private }}
+        <ul class="project-links" role="list">
+          {{- with $repo }}
+          <li><a class="project-link" href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ partial "icon.html" (dict "name" "github" "style" "brands") }}<span>{{ i18n "sourceCode" }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
+          {{- end }}
+          {{- with $live }}
+          <li><a class="project-link project-link--primary" href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ partial "icon.html" (dict "name" "arrow-up-right-from-square") }}<span>{{ i18n "liveSite" }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
+          {{- end }}
+          {{- if $private }}
+          <li><span class="project-private">{{ partial "icon.html" (dict "name" "lock") }}<span>{{ i18n "privateRepo" }}</span></span></li>
+          {{- end }}
+        </ul>
+        {{- end }}
+
+        {{- with .Params.stack }}
+        <p id="project-stack-label" class="project-stack-label">{{ i18n "stack" }}</p>
+        <ul class="stack-list" role="list" aria-labelledby="project-stack-label">
+          {{- range . }}
+          <li class="stack-pill">{{ . }}</li>
+          {{- end }}
+        </ul>
+        {{- end }}
+      </div>
+
+      {{- with .Params.featured_image }}
+      <div class="project-hero__cover" aria-hidden="true">
+        {{- $args := dict "page" $ "src" . "decorative" true "loading" "eager" "sizes" "(min-width: 1024px) 416px, 100vw" "class" "block w-full h-auto" -}}
+        {{- if not (strings.HasSuffix (lower .) ".svg") }}{{ $args = merge $args (dict "ratio" "8:5" "widths" (slice 480 800 1200)) }}{{ end -}}
+        {{- partial "img.html" $args -}}
+      </div>
+      {{- end }}
+    </header>
+
+    <div class="post-prose prose prose-lg max-w-prose dark:prose-invert">
+      {{ .Content }}
+    </div>
+
+    <footer class="project-footer">
+      {{- with .GetTerms "tags" }}
+      <ul class="post-tags m-0 flex list-none flex-wrap gap-2 p-0" role="list" aria-label="{{ i18n "tags" }}">
+        {{- range . }}
+        <li><a class="tag-pill" href="{{ .RelPermalink }}" rel="tag">{{ .Data.Term }}</a></li>
+        {{- end }}
+      </ul>
+      {{- end }}
+      {{- if and $list (not $list.IsHome) }}
+      <p class="m-0 text-sm font-medium"><a class="meta-link" href="{{ $list.RelPermalink }}">{{ i18n "allProjects" }} {{ partial "icon.html" (dict "name" "arrow-right") }}</a></p>
+      {{- end }}
+    </footer>
+  </div>
+</article>
+{{- else }}
+<article class="pt-8 pb-16 bg-bg dark:bg-bg">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="mb-8">
+      <h1 class="mb-4 text-3xl md:text-5xl font-bold leading-tight font-heading text-text-primary dark:text-text-primary">{{ .Title }}</h1>
+      {{- with .Description }}
+      <p class="m-0 max-w-prose text-lg text-text-secondary dark:text-text-secondary">{{ . }}</p>
+      {{- end }}
+    </header>
+    <div class="post-prose prose prose-lg max-w-prose dark:prose-invert">
+      {{ .Content }}
+    </div>
+  </div>
+</article>
+{{- end }}
+{{ end }}

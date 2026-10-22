@@ -1,0 +1,170 @@
+# ---- Claves usadas por los parciales de CareerCanvas (no cambiar nombres) ----
+[aboutMe]
+other = "Sobre mí"
+[aboutName]
+other = "Acerca de"
+[certainlyNotHere]
+other = "Por aquí no es"
+[connectOnLinkedIn]
+other = "Conectemos en LinkedIn"
+[contactFormLabel]
+other = "Hablemos"
+[contactFormLabelEmailLabel]
+other = "Correo"
+[contactFormLabelMessageLabel]
+other = "Mensaje"
+[contactFormLabelNameLabel]
+other = "Nombre"
+[contactFormLabelSubjectLabel]
+other = "Asunto"
+[contactFormSendBtnLabel]
+other = "Enviar"
+[contactInformation]
+other = "Datos de contacto"
+[demoImageAlt]
+other = "Ilustración"
+[downloadResume]
+other = "Descargar CV"
+[fullscreen]
+other = "Pantalla completa"
+[galleryNotFound]
+other = "No se encontraron imágenes en"
+[getInTouch]
+other = "Escríbeme"
+[goHome]
+other = "Ir a la página de inicio"
+[helloIm]
+other = "Hola, soy"
+[iframeIdRequired]
+other = "Error: el shortcode iframe necesita un 'id'."
+[interests]
+other = "Intereses"
+[keyAchievements]
+other = "Logros"
+[languages]
+other = "Idiomas"
+[learnMore]
+other = "Leer más"
+[more]
+other = "Más"
+[pageNotFound]
+other = "Página no encontrada"
+[pageNotFoundSubtitle]
+other = "La página que buscas no existe o cambió de lugar."
+[quickFacts]
+other = "En resumen"
+[relatedContent]
+other = "Relacionado"
+[sendMeAMessage]
+other = "Envíame un mensaje"
+[viewCV]
+other = "Ver CV"
+[viewOnGithub]
+other = "Ver el código en GitHub"
+[vimeoPlayerTitle]
+other = "Reproductor de video de Vimeo"
+[youtubePlayerTitle]
+other = "Reproductor de video de YouTube"
+
+# ---- Claves nuevas que usan los overrides de este sitio ----
+[skipToContent]
+other = "Saltar al contenido principal"
+[mainNavigation]
+other = "Navegación principal"
+[openMenu]
+other = "Abrir menú"
+[closeMenu]
+other = "Cerrar menú"
+[switchToLanguage]
+other = "Leer esta página en {{ .Label }}"
+[languageSwitcher]
+other = "Idioma"
+[themeToggle]
+other = "Cambiar entre modo oscuro y claro"
+[closeDialog]
+other = "Cerrar"
+[portraitAlt]
+other = "Retrato de {{ .Name }}"
+[emailLabel]
+other = "Correo"
+[phoneLabel]
+other = "Teléfono"
+[linkedinLabel]
+other = "LinkedIn"
+[locationLabel]
+other = "Ubicación"
+[contactNoJs]
+other = "Activa JavaScript para ver mi correo y mi teléfono, o búscame en LinkedIn."
+[emailAria]
+other = "Enviar un correo a Victor Molina"
+[phoneAria]
+other = "Llamar a Victor Molina"
+[linkedinQrTitle]
+other = "Escanea para abrir mi LinkedIn"
+[linkedinQrAlt]
+other = "Código QR que abre linkedin.com/in/victormolinaalba"
+[opensInNewTab]
+other = "(se abre en una pestaña nueva)"
+[projects]
+other = "Proyectos"
+[featuredProjects]
+other = "Proyectos destacados"
+[allProjects]
+other = "Ver todos los proyectos"
+[caseStudy]
+other = "Caso de trabajo"
+[personalProject]
+other = "Proyecto personal"
+[privateRepo]
+other = "Repositorio privado"
+[sourceCode]
+other = "Código fuente"
+[liveSite]
+other = "Sitio en vivo"
+[stack]
+other = "Tecnologías"
+[gallery]
+other = "Fuera de la oficina"
+[galleryIntro]
+other = "Algunas fotos de un viaje a San Francisco, septiembre de 2026."
+[noItemsYet]
+other = "Todavía no hay nada aquí"
+[noItemsYetBody]
+other = "Pronto aparecerán nuevas entradas."
+[blog]
+other = "Blog"
+[allPosts]
+other = "Todas las entradas"
+[tags]
+other = "Etiquetas"
+[taggedWith]
+other = "Entradas con la etiqueta"
+[publishedOn]
+other = "Publicado"
+[updatedOn]
+other = "Actualizado"
+[readingTime]
+one = "{{ .Count }} min de lectura"
+other = "{{ .Count }} min de lectura"
+[tableOfContents]
+other = "En esta página"
+[previousPost]
+other = "Entrada anterior"
+[nextPost]
+other = "Entrada siguiente"
+[relatedPosts]
+other = "Entradas relacionadas"
+[translationAvailable]
+other = "Esta entrada también está disponible en {{ .Label }}"
+[rssFeed]
+other = "Feed RSS"
+[subscribeRss]
+other = "Suscríbete por RSS"
+[pageOf]
+other = "Página {{ .Current }} de {{ .Total }}"
+[builtWith]
+other = "Hecho con Hugo y el tema CareerCanvas"
+[backToTop]
+other = "Volver arriba"
+[present]
+other = "Actualidad"

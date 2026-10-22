@@ -1,0 +1,56 @@
+{{- /*
+  Inline Font Awesome Free 6.7.2 icon (icons: CC BY 4.0, see LICENSES/FontAwesomeFree-License.txt).
+  Replaces the Font Awesome webfonts and CSS: the SVG is read at build time from
+  assets/icons/fa/<style>/<name>.svg (copied from @fortawesome/fontawesome-free by `npm run vendor`,
+  which finds the icons the site uses by scanning for this partial), so there is no font download
+  and no render-blocking stylesheet.
+
+  Usage:  {{ partial "icon.html" (dict "name" "briefcase" "class" "mr-2 text-lg") }}
+          {{ partial "icon.html" (dict "name" "github" "style" "brands") }}
+    name   required, the Font Awesome name without the "fa-" prefix.
+    style  "solid" (default), "brands", or "auto" (brands for the names in $brandIcons below, solid for
+           the rest; used where the name comes from content/<lang>/technical.md).
+    class  optional extra classes (Tailwind utilities, component classes). The base class is `icon`
+           (assets/css/site.css, block "T11: icons": 1em tall, aligned with the text, never shrinks).
+           The size follows the font-size of the element: height 1em, width = the glyph's width in em
+           (read from the viewBox, e.g. 1.25em for a 640x512 icon), exactly like the font glyph it replaces.
+
+  The icon is decorative (aria-hidden): it always sits next to its visible text or inside a link or
+  button that has its own accessible name. A name with no vendored file stops the build.
+
+  $brandIcons is the ONE list of technical.md icons that live in the brands set; scripts/vendor.mjs
+  reads this line, so keep it on a single line of quoted names.
+*/ -}}
+{{- $brandIcons := slice "python" "react" "docker" "github" "linux" "aws" "java" "js" "node-js" -}}
+{{- $class := .class -}}
+{{- $name := .name -}}
+{{- $style := .style | default "solid" -}}
+{{- if eq $style "auto" -}}
+  {{- $style = cond (in $brandIcons $name) "brands" "solid" -}}
+{{- end -}}
+{{- $res := false -}}
+{{- if not (in (slice "solid" "brands") $style) -}}
+  {{- errorf "icon.html: unknown style %q for icon %q (use \"solid\", \"brands\" or \"auto\")" $style $name -}}
+{{- else -}}
+  {{- $res = resources.Get (printf "icons/fa/%s/%s.svg" $style $name) -}}
+  {{- if not $res -}}
+    {{- errorf "icon.html: Font Awesome icon %q (style %q) not found: assets/icons/fa/%s/%s.svg does not exist. Check the name in Font Awesome Free 6.7.2 (solid or brands), then run `npm run vendor`." $name $style $style $name -}}
+  {{- end -}}
+{{- end -}}
+{{- if $res -}}
+  {{- $svg := string $res.Content -}}
+  {{- $viewBox := "" -}}
+  {{- with findRESubmatch `viewBox="([^"]+)"` $svg 1 -}}
+    {{- $viewBox = index (index . 0) 1 -}}
+  {{- end -}}
+  {{- $box := split $viewBox " " -}}
+  {{- if ne (len $box) 4 -}}
+    {{- errorf "icon.html: assets/icons/fa/%s/%s.svg has no usable viewBox (%q)" $style $name $viewBox -}}
+  {{- else -}}
+    {{- /* 1em tall and as wide as the glyph advance of the webfont it replaces (width / height of the viewBox, in em), so wide icons such as "robot" keep their size and the text next to an icon does not move. */ -}}
+    {{- $width := printf "%gem" (div (float (index $box 2)) (float (index $box 3))) -}}
+    {{- $paths := strings.TrimSpace (replaceRE `(?s)<!--.*?-->|^\s*<svg[^>]*>|</svg>\s*$` "" $svg) -}}
+<svg class="icon{{ with $class }} {{ . }}{{ end }}" aria-hidden="true" focusable="false" viewBox="{{ $viewBox }}" fill="currentColor" width="{{ $width }}" height="1em">{{ $paths | safeHTML }}</svg>
+  {{- end -}}
+{{- end -}}
+{{- /* no trailing newline: the icon sits inline, right next to its text */ -}}

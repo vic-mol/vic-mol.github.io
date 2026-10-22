@@ -1,0 +1,20 @@
+{{- /*
+  Up to 3 related posts of the current language, ranked by shared tags (see [related] in hugo.toml).
+  Adapted from hugo-mana-theme (c) 2024 Livour, MIT.
+*/ -}}
+{{- $related := where (site.RegularPages.Related .) "Section" "posts" | first 3 -}}
+{{- with $related }}
+<section class="related-posts mt-16" aria-labelledby="related-posts-title">
+  <h2 id="related-posts-title" class="mb-6 text-2xl font-bold font-heading text-text-primary dark:text-text-primary">{{ i18n "relatedPosts" }}</h2>
+  <ul class="grid list-none gap-4 p-0 sm:grid-cols-3" role="list">
+    {{- range . }}
+    <li class="post-card relative flex flex-col rounded-xl border border-border-primary bg-bg-secondary p-4 dark:border-border-primary dark:bg-bg-tertiary">
+      <h3 class="mb-2 text-base font-semibold leading-snug font-heading">
+        <a class="post-title-link stretched-link" href="{{ .RelPermalink }}">{{ .Title }}</a>
+      </h3>
+      <p class="mt-auto text-xs font-mono text-text-muted dark:text-text-muted"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format ":date_long" }}</time></p>
+    </li>
+    {{- end }}
+  </ul>
+</section>
+{{- end }}

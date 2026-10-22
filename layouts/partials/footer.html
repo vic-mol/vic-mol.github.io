@@ -1,0 +1,50 @@
+{{- /*
+  Site footer. Overrides the CareerCanvas footer.html.
+  Differences from the theme: language-aware home link, no params.email (the address is only ever
+  produced by partials/contact-link.html, encoded), social links with names, an RSS link once the
+  language has posts, the current year, and no Pexels or Calendly links. The theme attribution stays.
+*/ -}}
+{{- $page := . -}}
+<footer class="site-footer bg-bg-secondary text-text-primary">
+  <div class="site-footer__inner">
+    <div class="site-footer__top">
+      <div class="site-footer__about">
+        <a href="{{ site.Home.RelPermalink }}" class="site-footer__brand font-heading">{{ site.Params.name | default site.Title }}</a>
+        {{- with site.Params.tagline }}
+        <p class="site-footer__text">{{ . }}</p>
+        {{- end }}
+        {{- with site.Params.hero_description }}
+        <p class="site-footer__text">{{ . }}</p>
+        {{- end }}
+        {{- with site.Params.hero_location }}
+        <p class="site-footer__meta">{{ partial "icon.html" (dict "name" "location-dot") }}<span>{{ . }}</span></p>
+        {{- end }}
+        {{- if templates.Exists "partials/contact-link.html" }}
+        <p class="site-footer__meta">{{ partial "icon.html" (dict "name" "envelope") }}{{ partial "contact-link.html" (dict "page" $page "kind" "email" "class" "site-footer__link") }}</p>
+        {{- end }}
+        <ul class="site-footer__links">
+          {{- range site.Params.social }}
+          <li><a class="site-footer__link" href="{{ .url }}" target="_blank" rel="noopener noreferrer">{{ partial "icon.html" (dict "name" .icon "style" "brands") }}<span>{{ .label | default .icon }}<span class="sr-only"> {{ i18n "opensInNewTab" }}</span></span></a></li>
+          {{- end }}
+          {{- if partial "has-posts.html" $page }}
+          {{- with site.GetPage "/posts" }}{{ with .OutputFormats.Get "rss" }}
+          <li><a class="site-footer__link" href="{{ .RelPermalink }}">{{ partial "icon.html" (dict "name" "rss") }}<span>{{ i18n "subscribeRss" }}</span></a></li>
+          {{- end }}{{ end }}
+          {{- end }}
+        </ul>
+      </div>
+      {{- with site.Params.collab_tags }}
+      <ul class="site-footer__tags">
+        {{- range . }}
+        <li>{{ . }}</li>
+        {{- end }}
+      </ul>
+      {{- end }}
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>© {{ now.Year }} {{ site.Params.copyright | default site.Params.name }}</p>
+      <p>{{ i18n "builtWith" }}</p>
+    </div>
+  </div>
+</footer>
