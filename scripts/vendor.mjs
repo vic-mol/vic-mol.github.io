@@ -1,0 +1,486 @@
+#!/usr/bin/env node
+/**
+ * Vendors third-party assets into the repo so the site makes no third-party requests.
+ * Run with `npm run vendor` after `npm ci`. Commit the result. Idempotent: a second run
+ * rewrites nothing (every output is deterministic and is only written when its bytes change).
+ *
+ *   1. Fonts       node_modules/@fontsource*  ->  static/fonts/*.woff2, *-OFL.txt, assets/css/fonts.css
+ *   2. Font Awesome node_modules/@fortawesome ->  static/vendor/fontawesome/{css,webfonts}, LICENSE.txt
+ *   3. Devicon     `npm pack devicon@2.17.0`  ->  assets/icons/devicon/<devicon_name>-<style>.svg + LICENSE
+ *   4. OG font     `npm pack @ibm/plex-sans`  ->  assets/fonts/og/IBMPlexSans-SemiBold.ttf + OFL.txt
+ *
+ * Steps 3 and 4 download tarballs. Each goes into its own new, empty temp directory outside the
+ * repo, is checked against a pinned sha512, is read in memory, and only the few files we need are
+ * written out. Nothing from a tarball is ever executed.
+ *
+ * Exit code: 0 on success, 1 on any failure (including devicon icons named in
+ * content/<lang>/technical.md that do not exist in devicon).
+ */
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import zlib from 'node:zlib';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const at = (...p) => path.join(ROOT, ...p);
+const show = (file) => path.relative(ROOT, file).split(path.sep).join('/');
+
+const DEVICON = {
+  spec: 'devicon@2.17.0',
+  name: 'devicon',
+  version: '2.17.0',
+  integrity:
+    'sha512-2nKUdjobJlmRSaCHa50PGsVq0VDURnq9gVzQoJggsM/NKN0tLhC/Uq2zmy2pH36Q/1q3gvYwp/GjTgv/R0Ysbg==',
+};
+const PLEX = {
+  spec: '@ibm/plex-sans@1.1.0',
+  name: '@ibm/plex-sans',
+  version: '1.1.0',
+  integrity:
+    'sha512-WPgvO6Yfj2w5YbhyAr1tv95RUz4LRJlqN+CmYvBglabXteufP1D1E9BABMde+ZIKdRbFJDoKF5eQzfhpnbgZcQ==',
+};
+const FONTAWESOME_VERSION = '6.7.2';
+
+let changed = 0;
+let total = 0;
+
+/** Writes `data` to `file` only when the bytes differ. Creates parent directories. */
+function writeIfChanged(file, data) {
+  const buf = Buffer.isBuffer(data) ? data : Buffer.from(data, 'utf8');
+  total += 1;
+  if (fs.existsSync(file) && fs.readFileSync(file).equals(buf)) return false;
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, buf);
+  changed += 1;
+  return true;
+}
+
+/** Deletes files in `dir` that match `test` but are not in `keep`, so renamed or removed inputs leave no stale copies. */
+function prune(dir, keep, test) {
+  if (!fs.existsSync(dir)) return;
+  for (const name of fs.readdirSync(dir)) {
+    const full = path.join(dir, name);
+    if (fs.statSync(full).isFile() && test(name) && !keep.has(name)) {
+      fs.rmSync(full);
+      changed += 1;
+      console.log(`  removed stale ${show(full)}`);
+    }
+  }
+}
+
+function readPkgFile(pkg, ...parts) {
+  const file = at('node_modules', pkg, ...parts);
+  if (!fs.existsSync(file)) {
+    throw new Error(`${show(file)} not found. Run "npm ci" first.`);
+  }
+  return fs.readFileSync(file);
+}
+
+function pkgVersion(pkg) {
+  return JSON.parse(readPkgFile(pkg, 'package.json').toString('utf8')).version;
+}
+
+/* ------------------------------------------------------------------ 1. fonts */
+
+const SUBSETS = ['latin-ext', 'latin']; // latin last: it wins where the unicode-ranges overlap
+const FONT_FAMILIES = [
+  {
+    pkg: '@fontsource-variable/space-grotesk',
+    family: 'Space Grotesk Variable',
+    prefix: 'space-grotesk',
+    cssFiles: ['wght.css'],
+    variants: ['wght-normal'],
+    licenseOut: 'space-grotesk-OFL.txt',
+    licensesName: 'SpaceGrotesk-OFL.txt',
+  },
+  {
+    pkg: '@fontsource/ibm-plex-sans',
+    family: 'IBM Plex Sans',
+    prefix: 'ibm-plex-sans',
+    cssFiles: ['400.css', '400-italic.css', '600.css'],
+    variants: ['400-normal', '400-italic', '600-normal'],
+    licenseOut: 'ibm-plex-sans-OFL.txt',
+    licensesName: null, // LICENSES/IBMPlexSans-OFL.txt comes from the upstream @ibm/plex-sans tarball (step 4)
+  },
+  {
+    pkg: '@fontsource/jetbrains-mono',
+    family: 'JetBrains Mono',
+    prefix: 'jetbrains-mono',
+    cssFiles: ['400.css'],
+    variants: ['400-normal'],
+    licenseOut: 'jetbrains-mono-OFL.txt',
+    licensesName: 'JetBrainsMono-OFL.txt',
+  },
+];
+
+/** Parses fontsource CSS into Map(comment name -> declarations). */
+function parseFontFaces(css) {
+  const blocks = new Map();
+  const re = /\/\*\s*([\w-]+)\s*\*\/\s*@font-face\s*\{([^}]*)\}/g;
+  for (const m of css.matchAll(re)) {
+    const decls = {};
+    for (const part of m[2].split(';')) {
+      const i = part.indexOf(':');
+      if (i > 0) decls[part.slice(0, i).trim()] = part.slice(i + 1).trim();
+    }
+    blocks.set(m[1], decls);
+  }
+  return blocks;
+}
+
+function vendorFonts() {
+  console.log('Fonts (fontsource) -> static/fonts, assets/css/fonts.css');
+  const outDir = at('static', 'fonts');
+  const keep = new Set();
+  const keepLicenses = new Set();
+  const faces = [];
+  const versions = [];
+
+  for (const fam of FONT_FAMILIES) {
+    const version = pkgVersion(fam.pkg);
+    versions.push(`${fam.pkg} ${version}`);
+    const blocks = new Map();
+    for (const cssFile of fam.cssFiles) {
+      const css = readPkgFile(fam.pkg, cssFile).toString('utf8');
+      for (const [k, v] of parseFontFaces(css)) blocks.set(k, v);
+    }
+
+    for (const variant of fam.variants) {
+      for (const subset of SUBSETS) {
+        const key = `${fam.prefix}-${subset}-${variant}`;
+        const d = blocks.get(key);
+        if (!d) throw new Error(`${fam.pkg}: @font-face "${key}" not found in ${fam.cssFiles.join(', ')}`);
+        const family = (d['font-family'] ?? '').replace(/^['"]|['"]$/g, '');
+        if (family !== fam.family) throw new Error(`${key}: font-family is "${family}", expected "${fam.family}"`);
+        if (d['font-display'] !== 'swap') throw new Error(`${key}: font-display is "${d['font-display']}", expected swap`);
+        if (!d['unicode-range']) throw new Error(`${key}: no unicode-range`);
+        const src = /url\(\.\/files\/([\w.-]+\.woff2)\)\s*format\('(woff2(?:-variations)?)'\)/.exec(d.src ?? '');
+        if (!src) throw new Error(`${key}: cannot find a woff2 source in "${d.src}"`);
+        const [, file, format] = src;
+
+        writeIfChanged(path.join(outDir, file), readPkgFile(fam.pkg, 'files', file));
+        keep.add(file);
+        faces.push(
+          [
+            `/* ${key} */`,
+            '@font-face {',
+            `  font-family: "${fam.family}";`,
+            `  font-style: ${d['font-style']};`,
+            `  font-weight: ${d['font-weight']};`,
+            '  font-display: swap;',
+            `  src: url(/fonts/${file}) format("${format}");`,
+            `  unicode-range: ${d['unicode-range']};`,
+            '}',
+          ].join('\n'),
+        );
+      }
+    }
+
+    writeIfChanged(path.join(outDir, fam.licenseOut), readPkgFile(fam.pkg, 'LICENSE'));
+    keepLicenses.add(fam.licenseOut);
+    if (fam.licensesName) writeIfChanged(at('LICENSES', fam.licensesName), readPkgFile(fam.pkg, 'LICENSE'));
+  }
+
+  prune(outDir, keep, (n) => n.endsWith('.woff2'));
+  prune(outDir, keepLicenses, (n) => n.endsWith('-OFL.txt'));
+
+  const header = [
+    '/*',
+    ' * Generated by scripts/vendor.mjs (npm run vendor). Do not edit.',
+    ` * Source: ${versions.join(', ')}.`,
+    ' * Fonts are served from /fonts (static/fonts); licenses (SIL OFL 1.1) sit next to them.',
+    ' * latin-ext is declared before latin so latin wins where the unicode-ranges overlap.',
+    ' */',
+  ].join('\n');
+  writeIfChanged(at('assets', 'css', 'fonts.css'), `${header}\n\n${faces.join('\n\n')}\n`);
+
+  const woff2Bytes = [...keep].reduce((n, f) => n + fs.statSync(path.join(outDir, f)).size, 0);
+  console.log(`  ${keep.size} woff2 files, ${(woff2Bytes / 1024).toFixed(1)} KB; ${faces.length} @font-face rules`);
+}
+
+/* ------------------------------------------------------------ 2. Font Awesome */
+
+function vendorFontAwesome() {
+  console.log(`Font Awesome Free ${FONTAWESOME_VERSION} -> static/vendor/fontawesome`);
+  const pkg = '@fortawesome/fontawesome-free';
+  const version = pkgVersion(pkg);
+  if (version !== FONTAWESOME_VERSION) throw new Error(`${pkg} is ${version}, expected ${FONTAWESOME_VERSION}`);
+
+  const outDir = at('static', 'vendor', 'fontawesome');
+  const cssFiles = ['fontawesome.min.css', 'solid.min.css', 'brands.min.css'];
+  const webfonts = ['fa-solid-900.woff2', 'fa-brands-400.woff2'];
+
+  // Only the woff2 files are vendored, so the "truetype" fallback in solid/brands would 404 if a browser asked for it.
+  // Drop exactly that fallback source and leave the rest of the CSS byte-for-byte as shipped.
+  const ttfFallback = /,url\(\.\.\/webfonts\/[\w-]+\.ttf\) format\("truetype"\)/g;
+  const expectedStrips = { 'fontawesome.min.css': 0, 'solid.min.css': 1, 'brands.min.css': 1 };
+
+  for (const name of cssFiles) {
+    let css = readPkgFile(pkg, 'css', name).toString('utf8');
+    const strips = (css.match(ttfFallback) ?? []).length;
+    if (strips !== expectedStrips[name]) {
+      throw new Error(`${name}: found ${strips} ttf fallback sources, expected ${expectedStrips[name]}`);
+    }
+    css = css.replace(ttfFallback, '');
+    writeIfChanged(path.join(outDir, 'css', name), css);
+
+    // Every url() left in the CSS must resolve to a file we vendor.
+    for (const m of css.matchAll(/url\(([^)]+)\)/g)) {
+      const ref = m[1].replace(/^['"]|['"]$/g, '');
+      const target = path.resolve(outDir, 'css', ref);
+      if (!webfonts.includes(path.basename(target)) || path.dirname(target) !== path.join(outDir, 'webfonts')) {
+        throw new Error(`${name}: url(${ref}) does not point at a vendored webfont`);
+      }
+    }
+  }
+  for (const name of webfonts) {
+    writeIfChanged(path.join(outDir, 'webfonts', name), readPkgFile(pkg, 'webfonts', name));
+  }
+  writeIfChanged(path.join(outDir, 'LICENSE.txt'), readPkgFile(pkg, 'LICENSE.txt'));
+  writeIfChanged(at('LICENSES', 'FontAwesomeFree-License.txt'), readPkgFile(pkg, 'LICENSE.txt'));
+
+  prune(path.join(outDir, 'css'), new Set(cssFiles), () => true);
+  prune(path.join(outDir, 'webfonts'), new Set(webfonts), () => true);
+  console.log(`  ${cssFiles.length} css files (ttf fallback removed from solid and brands), ${webfonts.length} woff2 files`);
+}
+
+/* --------------------------------------------------------- tarball plumbing */
+
+function runNpm(args, cwd) {
+  const execpath = process.env.npm_execpath;
+  const opts = { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] };
+  let r;
+  if (execpath && /npm-cli\.[cm]?js$/.test(execpath)) {
+    r = spawnSync(process.execPath, [execpath, ...args], opts);
+  } else if (process.platform === 'win32') {
+    r = spawnSync('npm.cmd', args, { ...opts, shell: true }); // args are fixed literals
+  } else {
+    r = spawnSync('npm', args, opts);
+  }
+  if (r.error) throw r.error;
+  if (r.status !== 0) throw new Error(`npm ${args.join(' ')} failed (${r.status}):\n${r.stderr}`);
+  return r.stdout;
+}
+
+/** Minimal in-memory reader for a gzipped ustar/pax tarball. Returns Map(path without "package/" -> Buffer). */
+function readTarball(tgz) {
+  const tar = zlib.gunzipSync(tgz);
+  const cstr = (b, start, len) => {
+    const s = b.subarray(start, start + len);
+    const z = s.indexOf(0);
+    return s.subarray(0, z === -1 ? len : z).toString('utf8');
+  };
+  const files = new Map();
+  let pax = {};
+  let longName = null;
+  let off = 0;
+  while (off + 512 <= tar.length) {
+    const h = tar.subarray(off, off + 512);
+    if (h.every((b) => b === 0)) break;
+    const size = parseInt(cstr(h, 124, 12).trim() || '0', 8);
+    const type = String.fromCharCode(h[156] || 48);
+    const name = cstr(h, 0, 100);
+    const prefix = cstr(h, 345, 155);
+    off += 512;
+    const data = tar.subarray(off, off + size);
+    off += Math.ceil(size / 512) * 512;
+
+    if (type === 'x') {
+      pax = {};
+      for (const line of data.toString('utf8').split('\n')) {
+        const m = /^\d+ ([^=]+)=(.*)$/.exec(line);
+        if (m) pax[m[1]] = m[2];
+      }
+      continue;
+    }
+    if (type === 'g') continue;
+    if (type === 'L') {
+      longName = cstr(data, 0, data.length);
+      continue;
+    }
+    const full = pax.path ?? longName ?? (prefix ? `${prefix}/${name}` : name);
+    pax = {};
+    longName = null;
+    if (type === '0' && full.startsWith('package/')) files.set(full.slice('package/'.length), Buffer.from(data));
+  }
+  return files;
+}
+
+/** `npm pack <spec>` in a fresh empty temp dir outside the repo; verifies the pinned integrity; returns the file map. */
+function fetchTarball(pkg, tmp) {
+  if (!path.relative(ROOT, tmp).startsWith('..')) throw new Error(`temp dir ${tmp} is inside the repo`);
+  if (fs.readdirSync(tmp).length !== 0) throw new Error(`temp dir ${tmp} is not empty`);
+  runNpm(['pack', pkg.spec, '--ignore-scripts', '--loglevel=error'], tmp);
+  const tgzs = fs.readdirSync(tmp).filter((n) => n.endsWith('.tgz'));
+  if (tgzs.length !== 1) throw new Error(`npm pack ${pkg.spec}: expected one .tgz in ${tmp}, found ${tgzs.length}`);
+  const tgz = fs.readFileSync(path.join(tmp, tgzs[0]));
+  const integrity = `sha512-${createHash('sha512').update(tgz).digest('base64')}`;
+  if (integrity !== pkg.integrity) {
+    throw new Error(`${pkg.spec}: integrity mismatch\n  expected ${pkg.integrity}\n  got      ${integrity}`);
+  }
+  const files = readTarball(tgz);
+  const meta = JSON.parse(files.get('package.json')?.toString('utf8') ?? '{}');
+  if (meta.name !== pkg.name || meta.version !== pkg.version) {
+    throw new Error(`${pkg.spec}: tarball contains ${meta.name}@${meta.version}`);
+  }
+  return files;
+}
+
+function withTempDir(prefix, fn) {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  try {
+    return fn(tmp);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+/* ---------------------------------------------------------------- 3. devicon */
+
+/** Icons named in content/<lang>/technical.md front matter: Map("name-style" -> Set(source files)). */
+function requiredDeviconIcons() {
+  const needed = new Map();
+  const contentDir = at('content');
+  const langs = fs.readdirSync(contentDir).filter((n) => fs.existsSync(path.join(contentDir, n, 'technical.md')));
+  if (langs.length === 0) throw new Error('no content/*/technical.md found');
+
+  for (const lang of langs) {
+    const file = path.join(contentDir, lang, 'technical.md');
+    const text = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+    const fm = /^---\n([\s\S]*?)\n---(?:\n|$)/.exec(text);
+    if (!fm) throw new Error(`${show(file)}: no YAML front matter`);
+    const lines = fm[1].split('\n').filter((l) => !l.trim().startsWith('#'));
+
+    let seen = 0;
+    let parsed = 0;
+    for (const line of lines) {
+      seen += (line.match(/\bdevicon_name\s*:/g) ?? []).length;
+      // Skills are written as one-line YAML flow mappings: - { name: "AWS", devicon_name: "x", devicon_style: "y" }
+      for (const m of line.matchAll(/\{([^{}]*)\}/g)) {
+        const entry = {};
+        for (const pair of m[1].match(/(?:[^,"']|"[^"]*"|'[^']*')+/g) ?? []) {
+          const i = pair.indexOf(':');
+          if (i < 0) continue;
+          entry[pair.slice(0, i).trim()] = pair.slice(i + 1).trim().replace(/^(["'])(.*)\1$/, '$2');
+        }
+        if (!('devicon_name' in entry)) continue;
+        parsed += 1;
+        const name = entry.devicon_name;
+        const style = entry.devicon_style || 'original';
+        if (!/^[a-z0-9]+$/i.test(name) || !/^[a-z]+(-[a-z]+)*$/.test(style)) {
+          throw new Error(`${show(file)}: unexpected devicon_name "${name}" / devicon_style "${style}"`);
+        }
+        const key = `${name}-${style}`;
+        if (!needed.has(key)) needed.set(key, new Set());
+        needed.get(key).add(lang);
+      }
+    }
+    if (seen !== parsed) {
+      throw new Error(`${show(file)}: ${seen} devicon_name keys but only ${parsed} parsed; use one-line { ... } skill entries`);
+    }
+  }
+  return needed;
+}
+
+function vendorDevicon() {
+  console.log(`Devicon (${DEVICON.spec}) -> assets/icons/devicon`);
+  const needed = requiredDeviconIcons();
+  const names = [...needed.keys()].sort();
+
+  const files = withTempDir('vendor-devicon-', (tmp) => fetchTarball(DEVICON, tmp));
+  const missing = [];
+  const icons = new Map();
+  for (const key of names) {
+    const [name] = key.split('-', 1);
+    const svg = files.get(`icons/${name}/${key}.svg`);
+    if (!svg) {
+      missing.push(key);
+      console.log(`  MISSING ${key}.svg  (used in: ${[...needed.get(key)].sort().join(', ')})`);
+      continue;
+    }
+    const text = svg.toString('utf8');
+    if (!/<svg[\s>]/.test(text) || /<script|\son[a-z]+\s*=|javascript:/i.test(text)) {
+      throw new Error(`${key}.svg looks unsafe or is not an SVG`);
+    }
+    icons.set(key, svg);
+    console.log(`  ok      ${key}.svg  (${svg.length} bytes)`);
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `${missing.length} devicon icon(s) not found in ${DEVICON.spec}: ${missing.join(', ')}. ` +
+        'Fix devicon_name / devicon_style in content/*/technical.md or drop the devicon_name.',
+    );
+  }
+
+  const outDir = at('assets', 'icons', 'devicon');
+  for (const [key, svg] of icons) writeIfChanged(path.join(outDir, `${key}.svg`), svg);
+  const license = files.get('LICENSE');
+  if (!license) throw new Error('devicon tarball has no LICENSE');
+  writeIfChanged(path.join(outDir, 'LICENSE'), license);
+  writeIfChanged(at('LICENSES', 'Devicon-MIT.txt'), license);
+  prune(outDir, new Set([...icons.keys()].map((k) => `${k}.svg`)), (n) => n.endsWith('.svg'));
+  console.log(`  ${icons.size} icons + LICENSE`);
+}
+
+/* --------------------------------------------------------------- 4. OG font */
+
+function convertWoff2ToTtf(woff2, ttf, cwd) {
+  // recalcTimestamp=False keeps head.modified from the source so the output is byte-for-byte reproducible.
+  const code = [
+    'import sys',
+    'from fontTools.ttLib import TTFont',
+    'f = TTFont(sys.argv[1], recalcTimestamp=False)',
+    'f.flavor = None',
+    'f.save(sys.argv[2])',
+  ].join('\n');
+  // PYTHONSAFEPATH + an empty temp cwd: nothing next to the downloaded file can shadow a module.
+  const env = { ...process.env, PYTHONSAFEPATH: '1' };
+  for (const py of [process.env.PYTHON, 'python', 'python3'].filter(Boolean)) {
+    const r = spawnSync(py, ['-c', code, woff2, ttf], { cwd, env, encoding: 'utf8' });
+    if (r.error && r.error.code === 'ENOENT') continue;
+    if (r.error) throw r.error;
+    if (r.status !== 0) throw new Error(`${py} could not convert the font (is fontTools + brotli installed?):\n${r.stderr}`);
+    return;
+  }
+  throw new Error('python not found; install Python 3 with fontTools and brotli (pip install fonttools brotli)');
+}
+
+function vendorOgFont() {
+  console.log(`OG font (${PLEX.spec}) -> assets/fonts/og`);
+  const outDir = at('assets', 'fonts', 'og');
+  const result = withTempDir('vendor-plex-', (tmp) => {
+    const files = fetchTarball(PLEX, tmp);
+    const woff2 = files.get('fonts/complete/woff2/IBMPlexSans-SemiBold.woff2');
+    const license = files.get('LICENSE.txt');
+    if (!woff2 || !license) throw new Error(`${PLEX.spec}: SemiBold woff2 or LICENSE.txt missing from the tarball`);
+
+    // The tarball extraction dir (tmp) holds the .tgz only; the conversion works in its own empty sibling dir.
+    return withTempDir('vendor-plex-convert-', (work) => {
+      const input = path.join(work, 'in.woff2');
+      const output = path.join(work, 'out.ttf');
+      fs.writeFileSync(input, woff2);
+      convertWoff2ToTtf(input, output, work);
+      return { ttf: fs.readFileSync(output), license };
+    });
+  });
+  writeIfChanged(path.join(outDir, 'IBMPlexSans-SemiBold.ttf'), result.ttf);
+  writeIfChanged(path.join(outDir, 'OFL.txt'), result.license);
+  writeIfChanged(at('LICENSES', 'IBMPlexSans-OFL.txt'), result.license);
+  console.log(`  IBMPlexSans-SemiBold.ttf (${(result.ttf.length / 1024).toFixed(1)} KB) + OFL.txt`);
+}
+
+/* ---------------------------------------------------------------------- main */
+
+try {
+  vendorFonts();
+  vendorFontAwesome();
+  vendorDevicon();
+  vendorOgFont();
+  console.log(`Done: ${total} files checked, ${changed} written or removed.`);
+} catch (err) {
+  console.error(`\nvendor failed: ${err.message}`);
+  process.exit(1);
+}
