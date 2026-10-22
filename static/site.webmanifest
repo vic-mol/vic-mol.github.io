@@ -1,0 +1,11 @@
+{
+  "name": "Victor Molina",
+  "short_name": "Victor Molina",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ],
+  "theme_color": "#22405F",
+  "background_color": "#FFFFFF",
+  "display": "browser"
+}

@@ -1,0 +1,122 @@
+/* ==========================================================================
+   Site layer on top of the CareerCanvas theme CSS (which stays untouched).
+   Order in the bundle: theme main.css → fonts.css → this file → syntax.css.
+   Palette: "Bay at first light" (see hugo.toml params.color_palettes).
+   Later tasks add their own delimited blocks:  /* == T7: contact == */
+   ========================================================================== */
+
+/* == T4: tokens ========================================================== */
+:root {
+  --color-first-light: #F2C9A8;
+  --hero-overlay: linear-gradient(180deg, rgb(14 27 42 / .55), rgb(14 27 42 / .80));
+
+  /* The theme's muted gray (40% primary on white) is 2.1:1 on white. 80% primary → #4E667F, 5.95:1. */
+  --color-gray-500: color-mix(in srgb, var(--color-primary) 80%, white);
+  --color-text-muted: var(--color-gray-500);
+}
+
+.dark {
+  /* Restore the theme's dark-mode values that the :root override above would otherwise win. */
+  --color-gray-500: color-mix(in srgb, var(--color-primary) 40%, white);
+  --color-text-muted: var(--color-gray-400);
+  /* The theme's orange and brown fail on the dark background (2.8:1); lighter variants pass (6.0:1 / 7.4:1). */
+  --color-second: #EE7B63;
+  --color-third: #D9A27F;
+}
+
+/* == T4: typography ====================================================== */
+body {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.font-heading,
+h1, h2, h3 {
+  font-family: "Space Grotesk Variable", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.font-mono,
+code, kbd, samp, pre {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* == T4: focus, selection, skip link ===================================== */
+:focus-visible {
+  outline: 3px solid var(--color-second);
+  outline-offset: 2px;
+}
+
+.dark :focus-visible,
+.on-dark :focus-visible,
+.hero-section :focus-visible {
+  outline-color: var(--color-first-light);
+}
+
+::selection {
+  background: var(--color-first-light);
+  color: #22405F;
+}
+
+.skip-link {
+  position: absolute;
+  left: .75rem;
+  top: -4rem;
+  z-index: 200;
+  padding: .625rem 1rem;
+  border-radius: .5rem;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: .75rem;
+}
+
+main:focus {
+  outline: none;
+}
+
+/* == T4: hero overlay ==================================================== */
+.hero-overlay {
+  background: var(--hero-overlay);
+}
+
+/* == T4: motion ========================================================== */
+/* Sections are visible by default (no JavaScript, print, reduced motion).
+   The fade-in only exists once the inline init script has added html.js. */
+section[id] {
+  scroll-margin-top: 5rem;
+}
+
+section[data-animate] {
+  opacity: 1;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js section[data-animate] {
+    transition: opacity .6s ease;
+  }
+
+  html.js section[data-animate]:not(.fade-in-visible) {
+    opacity: 0;
+  }
+}
+
+@media print {
+  html.js section[data-animate]:not(.fade-in-visible) {
+    opacity: 1 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
