@@ -168,3 +168,7 @@ other = "Hecho con Hugo y el tema CareerCanvas"
 other = "Volver arriba"
 [present]
 other = "Actualidad"
+[tagsDescription]
+other = "Todas las etiquetas del portafolio de {{ .Name }}: proyectos y entradas sobre seguridad en IA y ciberseguridad."
+[termDescription]
+other = "Proyectos y entradas con la etiqueta «{{ .Term }}» en el portafolio de {{ .Name }}: IA y ciberseguridad."

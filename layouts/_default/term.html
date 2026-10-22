@@ -24,7 +24,7 @@
     </header>
 
     {{- if $posts }}
-    {{- $paginator := .Paginate ($posts.ByDate.Reverse) }}
+    {{- $paginator := .Paginate (partial "paginated-pages.html" .) }}
     <ol class="m-0 flex list-none flex-col gap-6 p-0" role="list">
       {{- range $paginator.Pages }}
       <li>

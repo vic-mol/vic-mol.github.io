@@ -1,0 +1,33 @@
+{{- /*
+  Per-language sitemap. Overrides Hugo's built-in template so that it agrees with head.html:
+  - the blog index is left out while it carries noindex (no published posts in this language);
+  - alternates use the same hreflang codes as the <link> tags (en, es) and add x-default.
+*/ -}}
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+{{- $hasPosts := partial "has-posts.html" . }}
+{{- $default := hugo.Sites.Default.Language.Lang }}
+{{- range where .Pages "Sitemap.Disable" "ne" true }}
+  {{- if and .IsSection (eq .Section "posts") (not $hasPosts) }}{{ continue }}{{ end }}
+  <url>
+    <loc>{{ .Permalink }}</loc>
+    {{- if not .Lastmod.IsZero }}
+    <lastmod>{{ .Lastmod.Format "2006-01-02T15:04:05-07:00" | safeHTML }}</lastmod>
+    {{- end }}
+    {{- with .Sitemap.ChangeFreq }}
+    <changefreq>{{ . }}</changefreq>
+    {{- end }}
+    {{- if ge .Sitemap.Priority 0.0 }}
+    <priority>{{ .Sitemap.Priority }}</priority>
+    {{- end }}
+    {{- if .IsTranslated }}
+    {{- range .AllTranslations }}
+    <xhtml:link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}"/>
+    {{- end }}
+    {{- range where .AllTranslations "Language.Lang" $default }}
+    <xhtml:link rel="alternate" hreflang="x-default" href="{{ .Permalink }}"/>
+    {{- end }}
+    {{- end }}
+  </url>
+{{- end }}
+</urlset>
