@@ -7,7 +7,6 @@ module.exports = {
     './content/**/*.md',
     './data/**/*.{yaml,toml,json}',
     './assets/js/**/*.js',
-    './themes/careercanvas/layouts/**/*.html',
   ],
   theme: {
     extend: {
