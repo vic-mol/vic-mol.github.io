@@ -3,6 +3,7 @@
   Identical to the theme file except that the two Font Awesome <i> icons are the inline SVGs of
   partials/icon.html (the Font Awesome webfonts and CSS are no longer shipped). The 3px vertical margin
   on the domain icon reproduces the 36px line box the old text-3xl glyph had, so the cards keep their height.
+  The mt-12 on the tag row is also ours: the theme left no gap between the card grid and the tags.
 */ -}}
 <!-- Skills Section --> 
 <section id="skills" class="py-12 bg-bg-secondary dark:bg-bg-secondary skills-section border-t border-border-primary" data-animate>
@@ -26,7 +27,7 @@
         {{ end }}
       </div>
 
-      <div class="text-center">
+      <div class="text-center mt-12">
         <div class="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
           {{ range .Params.technical }}
           <span class="bg-gradient-primary-lighter text-text-primary dark:text-primary-dark px-4 py-2 rounded-full font-medium border border-primary-light flex items-center gap-2" data-animation="skill-tag">
